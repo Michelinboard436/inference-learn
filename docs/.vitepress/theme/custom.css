@@ -128,6 +128,18 @@
   margin-top: 12px !important;
 }
 
+/* ★ Hero 图片放大 */
+.VPHomeHero .image-container {
+  max-width: 640px !important;
+}
+
+.VPHomeHero .image-src {
+  max-width: 640px !important;
+  width: 640px !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+}
+
 /* ─── 特性卡片 ─── */
 .VPFeatures .item {
   transition: transform 0.25s ease, box-shadow 0.25s ease;
