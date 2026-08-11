@@ -116,18 +116,120 @@ if (pos == n_prompt) {
 
 ### KV Cache 在两阶段的作用
 
-回顾第 5 章的因果注意力：每个 token 只看自己和之前的 token。这意味着：
+#### 放进 cache 的到底是什么——不是 token，是 K 和 V 向量
+
+常见误解：「prefill 把 token（符号/编号）放进 cache」。**不是**。token 进了网络后会变成 896 维向量，再经过投影变成 K 和 V，**放进去的是 K 和 V 这两个向量**：
 
 ```
-prefill 阶段:
-  每步把当前 token 的 K/V 存进 cache 第 pos 格
-  → prefill 结束时, cache 里已经有 prompt 全部 n 个 token 的 K/V
-
-decode 阶段:
-  新 token 的 Q 去 × cache 里所有 K (包括 prompt 的 + 已生成的)
-  → 新 token 能看到整个上下文
-  → 把自己的 K/V 也存进 cache 第 pos 格
+token "你" (id=56568, 只是个编号)
+  ↓
+查 embedding 表 → 896 维向量
+  ↓
+经过 K 投影 (Wk 矩阵) → 128 维的 K 向量  ← ★ 这个进 cache
+经过 V 投影 (Wv 矩阵) → 128 维的 V 向量  ← ★ 这个进 cache
 ```
+
+cache 里存的是**两堆向量**，不是 token id：
+
+```
+KV Cache (prefill 填满后的样子):
+
+  位置 0 ("你"):  K=[0.3, -0.1, ...128个数]  V=[0.5, 0.2, ...128个数]
+  位置 1 ("好"):  K=[-0.2, 0.4, ...]         V=[0.1, -0.3, ...]
+
+  存的是向量(每个128个浮点数), 不是 token id
+```
+
+为什么存 K 和 V，不存别的？回到 attention 的计算（第 5 章）：
+
+```
+注意力 = softmax(Q · K^T / √d) · V
+
+Q = 当前 token "我想找什么"        ← 每次都重新算
+K = 每个 token "是什么标签"        ← 存进 cache ★
+V = 每个 token "携带什么内容"      ← 存进 cache ★
+```
+
+Q 每次都要重新算（每个新 token 的 Q 不一样），但 **K 和 V 一旦算过就不用再算了**——同一个 token 的 K 和 V 永远一样。所以 cache 的作用是：**把所有历史 token 的 K 和 V 存起来，避免每次都重算**。
+
+#### prefill 填 cache 的完整过程
+
+用 "你好" 走一遍：
+
+```
+═══ prefill: 把 prompt 的 K/V 填进 cache ═══
+
+第 1 次 forward (pos=0, 处理 "你"):
+  "你" → embedding → 896维
+       → 投影出 K(128维), V(128维)
+       → 存进 cache[0]
+
+  cache 现在有: [位置0: 你 的 K,V]          ← 1 个
+
+  这步也算了 logits, 但不采样, 直接丢掉
+  (因为 prompt 的下一个 token "好" 是已知的, 不用模型猜)
+
+
+第 2 次 forward (pos=1, 处理 "好"):
+  "好" → embedding → 896维
+       → 投影出 K(128维), V(128维)
+       → 存进 cache[1]
+
+  cache 现在有: [位置0: 你 的 K,V]          ← 2 个
+               [位置1: 好 的 K,V]
+
+  ★ 这一步 (pos = n_prompt-1) 才采样!
+  "好" 的 Q 去 × cache 里所有的 K (位置0 + 位置1)
+  → 看到 "你" → 混入 "你" 的信息
+  → 算出 logits → 采样 → 得到第一个新 token
+
+
+═══ decode: 用 cache 生成新 token ═══
+
+第 3 次 forward (pos=2, 处理刚采样的新 token):
+  新 token → embedding → 896维
+          → 投影出 K, V
+          → 存进 cache[2]
+
+  cache 现在有: [位置0: 你 的 K,V]
+               [位置1: 好 的 K,V]
+               [位置2: 新词 的 K,V]        ← 3 个
+
+  新 token 的 Q × cache 里所有 K (3 个位置)
+  → 看到完整的 "你好 + 新词" 上下文
+  → 采样 → 下一个新 token
+```
+
+下面这个图展示 cache 随 prefill / decode 逐步增长的过程——注意每步追加的是 K/V 向量，不是 token id：
+
+```mermaid
+flowchart LR
+    subgraph P["Prefill 阶段 (填 cache, 不采样)"]
+        P1["pos=0 处理 你<br/>cache 存入 你的 K,V"]
+        P2["pos=1 处理 好<br/>cache 存入 好的 K,V<br/>★ 这步才采样"]
+        P1 --> P2
+    end
+    subgraph D["Decode 阶段 (用 cache 生成)"]
+        D1["pos=2 新 token<br/>cache 存入新词的 K,V<br/>Q 查全部 cache"]
+        D2["pos=3 新 token<br/>cache 继续追加<br/>Q 查全部 cache"]
+        D3["... 一直生成<br/>直到 EOS"]
+        D1 --> D2 --> D3
+    end
+    P --> D
+```
+
+#### 一句话总结
+
+```
+✗ 把 token (符号/编号) 放进 cache
+✓ 把 token 经过投影后的 K 向量和 V 向量 放进 cache
+
+因为后面每个新 token 都要和这些 K/V 做注意力计算
+(新 token 的 Q × cache 里的 K → 算相关度 → 拿 V)
+存起来就不用每次重算了
+```
+
+cache 里全是向量（128 维的浮点数数组），不是 token id。这就是为什么 cache 占内存——每个位置存 K 和 V 各 128 个 float，24 层 × seq_len 个位置，总共约 50MB。prefill 的唯一目的就是**把这个 cache 填满**，让 decode 阶段生成的新 token 能看到整个 prompt 的上下文。
 
 如果没有 KV Cache，decode 每一步都要重算一遍 prompt 所有 token 的 K/V——`n` 步就 `O(n²)`。有了 cache 复杂度降到 `O(n)`。这是为什么生成能跑得动的根本原因。
 
