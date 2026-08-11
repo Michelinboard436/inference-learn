@@ -88,6 +88,53 @@ open trace_report.html
 
 </details>
 
+## 🏗️ Architecture / 系统架构图
+
+```mermaid
+flowchart TB
+    subgraph Input["📥 输入 Input"]
+        PROMPT["用户输入<br/>'Hello world'"]
+    end
+
+    subgraph Tokenize["🔤 分词 tokenizer.c"]
+        BPE["BPE 编码<br/>文字 → token ids<br/>Hello world → 9707, 1879"]
+    end
+
+    subgraph Loading["📦 权重加载 safetensors.c"]
+        FILE["model.safetensors<br/>(988MB, bf16)"]
+        MMAP["mmap 零拷贝<br/>bf16 → fp32 转换"]
+        FILE --> MMAP
+    end
+
+    subgraph Engine["⚡ 推理引擎 net.c ~400行"]
+        EMBED["Embedding 查表<br/>token id → 896维向量"]
+        subgraph Layer["× 24 层 Transformer"]
+            NORM1["RMSNorm 归一化"]
+            QKV["QKV 投影<br/>算出 Query / Key / Value"]
+            ROPE["RoPE 旋转位置编码"]
+            ATT["Attention 注意力<br/>GQA: 14个Q头共享2组KV"]
+            CACHE["KV Cache 缓存"]
+            NORM2["RMSNorm 归一化"]
+            MLP["SwiGLU MLP 前馈<br/>扩张4864维 → 门控 → 压回"]
+            NORM1 --> QKV --> ROPE --> ATT --> CACHE --> NORM2 --> MLP
+        end
+        LOGITS["Logits 151936个分数<br/>和 embedding 表做点积"]
+        EMBED --> Layer --> LOGITS
+    end
+
+    subgraph Output["📤 输出 run.c"]
+        SAMPLE["采样<br/>greedy / temperature / top-k"]
+        DECODE["BPE 解码<br/>token id → 文字"]
+        PRINT["输出文本"]
+        SAMPLE --> DECODE --> PRINT
+    end
+
+    PROMPT --> BPE
+    BPE --> EMBED
+    MMAP --> EMBED
+    LOGITS --> SAMPLE
+```
+
 ## 📂 Source Structure
 
 ```
