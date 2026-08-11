@@ -200,24 +200,6 @@ Q 每次都要重新算（每个新 token 的 Q 不一样），但 **K 和 V 一
   → 采样 → 下一个新 token
 ```
 
-下面这个图展示 cache 随 prefill / decode 逐步增长的过程——注意每步追加的是 K/V 向量，不是 token id：
-
-```mermaid
-flowchart LR
-    subgraph P["Prefill 阶段 (填 cache, 不采样)"]
-        P1["pos=0 处理 你<br/>cache 存入 你的 K,V"]
-        P2["pos=1 处理 好<br/>cache 存入 好的 K,V<br/>★ 这步才采样"]
-        P1 --> P2
-    end
-    subgraph D["Decode 阶段 (用 cache 生成)"]
-        D1["pos=2 新 token<br/>cache 存入新词的 K,V<br/>Q 查全部 cache"]
-        D2["pos=3 新 token<br/>cache 继续追加<br/>Q 查全部 cache"]
-        D3["... 一直生成<br/>直到 EOS"]
-        D1 --> D2 --> D3
-    end
-    P --> D
-```
-
 #### 一句话总结
 
 ```
