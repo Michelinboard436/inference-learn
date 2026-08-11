@@ -1,6 +1,6 @@
 # Appendix A · Glossary
 
-> 🌐 [中文版](../appendix-a-glossary) | English
+> 🌐 [中文版](../cn/appendix-a-glossary) | English
 
 > Appendix A | [Previous: Chapter 10 · Ecosystem Comparison](./10-ecosystem.md) | [Next: Appendix B · Struct Reference](./appendix-b-structs.md)
 

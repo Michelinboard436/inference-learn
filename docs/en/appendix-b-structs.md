@@ -1,6 +1,6 @@
 # Appendix B · Struct Reference
 
-> 🌐 [中文版](../appendix-b-structs) | English
+> 🌐 [中文版](../cn/appendix-b-structs) | English
 
 > [Previous: Chapter 10 · Ecosystem Comparison](./10-ecosystem.md) | [Previous appendix: Appendix A · Glossary](./appendix-a-glossary.md)
 

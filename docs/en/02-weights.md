@@ -1,4 +1,4 @@
-> 🌐 [中文版](../02-weights) | English
+> 🌐 [中文版](../cn/02-weights) | English
 
 # Chapter 2 · Weight Storage & Loading
 

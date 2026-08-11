@@ -1,6 +1,6 @@
 # Chapter 6 · Tokenizer (tokenizer.c)
 
-> 🌐 [中文版](../06-tokenizer.md) | English
+> 🌐 [中文版](../cn/06-tokenizer.md) | English
 
 > Chapter 6 | Companion source: `tokenizer.c` (~510 lines) | [Previous: Forward Pass](./05-forward.md) | [Next: Sampling & Generation](./07-sampling.md)
 

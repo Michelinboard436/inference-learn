@@ -1,6 +1,6 @@
 # Chapter 10 · Ecosystem Comparison & Performance Optimization
 
-> 🌐 [中文版](../10-ecosystem) | English
+> 🌐 [中文版](../cn/10-ecosystem) | English
 
 > Chapter 10 | [Previous: Chapter 9 · Debugging & Verification Methodology](./09-debugging.md) | [Next: Appendix A · Glossary](./appendix-a-glossary.md)
 

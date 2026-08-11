@@ -1,6 +1,6 @@
 # Chapter 7 · Sampling & Generation (run.c)
 
-> 🌐 [中文版](../07-sampling.md) | English
+> 🌐 [中文版](../cn/07-sampling.md) | English
 
 > Chapter 7 | [Previous: Chapter 6 Tokenizer](./06-tokenizer.md) | [Next: Chapter 8 Logging & Visualization](./08-logging.md)
 

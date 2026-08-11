@@ -1,4 +1,4 @@
-> 🌐 [中文版](../01-basics) | English
+> 🌐 [中文版](../cn/01-basics) | English
 
 # Chapter 1 · Basics
 
