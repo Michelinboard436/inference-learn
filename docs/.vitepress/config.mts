@@ -5,6 +5,12 @@ export default defineConfig({
   title: 'inference-learn',
   description: '从零用纯 C 写 Transformer 推理引擎，理解 LLM 的每一个零件',
 
+  // head: favicon + 字体优化
+  head: [
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/inference-learn/data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🧠</text></svg>' }],
+    ['meta', { name: 'theme-color', content: '#5b8def' }]
+  ],
+
   // GitHub 仓库关联
   repo: 'jackiesre721/inference-learn',
   repoLink: 'https://github.com/jackiesre721/inference-learn',
