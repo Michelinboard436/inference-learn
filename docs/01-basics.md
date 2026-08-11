@@ -348,7 +348,7 @@ MLP三个矩阵:   13,074,432    (87.7%)  ████████████�
 下面这个图直观展示单层参数的分布比例——MLP 一家独大：
 
 ```mermaid
-pie title 单层 Transformer 的参数分布 (共 1490 万)
+pie title 单层 Transformer 参数分布
     "MLP 三个矩阵" : 87.7
     "QKV 投影+bias" : 6.9
     "O 投影" : 5.4
@@ -358,7 +358,7 @@ pie title 单层 Transformer 的参数分布 (共 1490 万)
 再看整个模型 0.5B 参数的构成：
 
 ```mermaid
-pie title 整个模型 0.49B 参数构成
+pie title 整个模型参数构成
     "24 层 Transformer" : 357897216
     "词嵌入表" : 136134656
     "最终 norm" : 896

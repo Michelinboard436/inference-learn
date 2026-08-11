@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 
 const baseConfig = {
   title: 'inference-learn',
@@ -110,14 +111,16 @@ const enThemeConfig = {
   sidebarMenuLabel: 'Menu'
 }
 
-export default defineConfig({
-  ...baseConfig,
-  locales: {
-    root: { label: '简体中文', lang: 'zh-CN', themeConfig: zhThemeConfig },
-    en: { label: 'English', lang: 'en-US', themeConfig: enThemeConfig }
-  },
-  markdown: {
-    lineNumbers: true,
-    theme: { light: 'github-light', dark: 'github-dark' }
-  }
-})
+export default withMermaid(
+  defineConfig({
+    ...baseConfig,
+    locales: {
+      root: { label: '简体中文', lang: 'zh-CN', themeConfig: zhThemeConfig },
+      en: { label: 'English', lang: 'en-US', themeConfig: enThemeConfig }
+    },
+    markdown: {
+      lineNumbers: true,
+      theme: { light: 'github-light', dark: 'github-dark' }
+    }
+  })
+)
