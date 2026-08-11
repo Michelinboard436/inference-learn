@@ -11,12 +11,12 @@ hero:
   actions:
     - theme: brand
       text: 📖 开始阅读
+      link: /01-basics
+    - theme: alt
+      text: 📋 目录
       link: /README
     - theme: alt
-      text: 💻 查看源码
-      link: https://github.com/jackiesre721/inference-learn
-    - theme: alt
-      text: ⭐ GitHub Star
+      text: 💻 源码仓库
       link: https://github.com/jackiesre721/inference-learn
 
 features:

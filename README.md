@@ -12,7 +12,8 @@ Build a Transformer inference engine from scratch in pure C — no PyTorch, no A
 [![Lines: ~2700](https://img.shields.io/badge/Code-~2700行_C-orange.svg)]()
 [![Docs: 中文](https://img.shields.io/badge/Docs-中文-red.svg)]()
 
-📖 **[在线文档](https://jackiesre721.github.io/inference-learn/)** · 📦 **[源码](https://github.com/jackiesre721/inference-learn)**
+📖 **[在线文档](https://jackiesre721.github.io/inference-learn/)** ← 从这里开始阅读
+📦 **[源码仓库](https://github.com/jackiesre721/inference-learn)**
 
 </div>
 
