@@ -12,18 +12,18 @@
 
 ## Table of Contents
 
-- [7.1 The generation loop: prefill + decode two phases](#71-the-generation-loop-prefill--decode-two-phases)
-- [7.2 Why it must be split into two phases](#72-why-it-must-be-split-into-two-phases)
-- [7.3 prefill and decode actually do the same thing](#73-prefill-and-decode-actually-do-the-same-thing)
-- [7.4 Why prefill is compute-bound and decode is memory-bound](#74-why-prefill-is-compute-bound-and-decode-is-memory-bound)
-- [7.5 The sampling strategy landscape](#75-the-sampling-strategy-landscape)
-- [7.6 PRNG: xorshift128](#76-prng-xorshift128)
-- [7.7 Command-line arguments](#77-command-line-arguments)
-- [7.8 One-sentence summary](#78-one-sentence-summary)
+- [The generation loop: prefill + decode two phases](#the-generation-loop-prefill--decode-two-phases)
+- [Why it must be split into two phases](#why-it-must-be-split-into-two-phases)
+- [prefill and decode actually do the same thing](#prefill-and-decode-actually-do-the-same-thing)
+- [Why prefill is compute-bound and decode is memory-bound](#why-prefill-is-compute-bound-and-decode-is-memory-bound)
+- [The sampling strategy landscape](#the-sampling-strategy-landscape)
+- [PRNG: xorshift128](#prng-xorshift128)
+- [Command-line arguments](#command-line-arguments)
+- [One-sentence summary](#one-sentence-summary)
 
 ---
 
-## 7.1 The generation loop: prefill + decode two phases
+## The generation loop: prefill + decode two phases
 
 A full generation happens in two steps: first "read" the whole prompt in (prefill), then "write" out new tokens one at a time (decode).
 
@@ -107,7 +107,7 @@ Run with `-v` once and you'll see these two bold red dividers.
 
 ---
 
-## 7.2 Why it must be split into two phases
+## Why it must be split into two phases
 
 A common question: **the prompt has n tokens — can we compute them all in parallel, instead of one slot at a time?**
 
@@ -221,7 +221,7 @@ Without a KV Cache, every decode step would have to recompute the K/V of all pro
 
 ---
 
-## 7.3 prefill and decode actually do the same thing
+## prefill and decode actually do the same thing
 
 Look carefully and you'll find: every step of prefill and every step of decode do **exactly the same thing**:
 
@@ -276,7 +276,7 @@ for (int pos = 0; pos < total_len; pos++) {
 
 ---
 
-## 7.4 Why prefill is compute-bound and decode is memory-bound
+## Why prefill is compute-bound and decode is memory-bound
 
 Industrial engines (vLLM/SGLang) often say "prefill is compute-bound, decode is memory-bound." But we just said forward is the same for both — why are the bottlenecks different?
 
@@ -355,7 +355,7 @@ decode = retail:
 
 ---
 
-## 7.5 The sampling strategy landscape
+## The sampling strategy landscape
 
 The `sample()` function (`run.c:84`) supports four strategies, controlled by combining the two parameters `temperature` and `top_k`.
 
@@ -530,7 +530,7 @@ roulette:
 
 ---
 
-## 7.6 Random number generator: xorshift128
+## Random number generator: xorshift128
 
 Sampling needs random numbers. This project doesn't rely on the system's `/dev/random`; it uses a **deterministic** pseudo-random number generator (PRNG) — so that **the same seed always produces the same sequence**, which makes reproducing bugs easy.
 
@@ -602,7 +602,7 @@ Hand-written xorshift128 fixes all of these: cross-platform consistent, period `
 
 ---
 
-## 7.7 Command-line arguments
+## Command-line arguments
 
 `run.c`'s `main()` parses these arguments:
 
@@ -677,7 +677,7 @@ The `fwd` subcommand is the cornerstone of the debugging methodology in Chapter 
 
 ---
 
-## 7.8 One-sentence summary
+## One-sentence summary
 
 **Generation = prefill (pour the prompt into the KV Cache) + decode (autoregressively sample one token at a time)**.
 Sampling = `softmax(logits/T)` → top-k cuts the long tail → roulette-wheel picks one.

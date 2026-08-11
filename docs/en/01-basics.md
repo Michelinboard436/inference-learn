@@ -33,7 +33,7 @@ Every concept comes with three things:
 
 ---
 
-## 1.1 What Is an Inference Engine
+## What Is an Inference Engine
 
 **Inference** = using a trained model to compute a result. Unlike training, inference **does not need to update weights**; it only does a "forward computation."
 
@@ -45,7 +45,7 @@ next_token_id = forward(weights, tokens_so_far)
 
 It really is that simple. The entire project — more than 2000 lines of C — is built around this one function: how to read `weights` from disk, how to turn text into `tokens_so_far`, and how to turn `next_token_id` back into text to print out.
 
-## 1.2 Transformer in One Sentence
+## Transformer in One Sentence
 
 A Transformer is a kind of neural network whose core mechanism is **attention**: it lets each word "look at" the other words and decide whom to attend to and whom to ignore.
 
@@ -55,7 +55,7 @@ A Transformer is a kind of neural network whose core mechanism is **attention**:
 
 Modern large models (GPT / Llama / Qwen) are all **Decoder-only Transformers**: they use only the decoder part and generate word by word from left to right. The Qwen2.5-0.5B loaded by this project is exactly this kind of architecture.
 
-## 1.3 Tensors and Dimensions
+## Tensors and Dimensions
 
 This is the section where readers most easily get tripped up in the whole book, so please read it carefully.
 
@@ -167,7 +167,7 @@ dim=896, 24 layers: recognizes words just the same, plus can reason layer by lay
 
 Qwen2.5-0.5B picking dim=896 is a **carefully chosen balance** — enough to learn basic language ability, yet small enough to run on an ordinary computer.
 
-## 1.4 How "0.5B" Is Computed
+## How "0.5B" Is Computed
 
 B = Billion. 0.5B means the model has about **500 million parameters (trainable weight numbers)**. The exact figure is **494,032,768 ≈ 0.49B**, which rounds to "0.5B".
 
@@ -207,7 +207,7 @@ Two observations:
 1. **MLP dominates**: of the 14.9 million parameters per layer, the three MLP matrices alone account for 13.07 million (88%). That's because `4864 × 896 × 3` is so large. Increasing `hidden_dim` has the biggest impact on parameter count.
 2. **GQA saves parameters**: K/V use 2 heads (128-dim) instead of 14 heads (896-dim), saving about 1.38 million params per layer. The bigger payoff is in KV Cache memory (7× savings).
 
-## 1.5 What Each Parameter Does (Told as "What Problem It Solves")
+## What Each Parameter Does (Told as "What Problem It Solves")
 
 The table above listed which parameters each layer has, but not what problem each one solves. Let's go through them one by one. You'll meet all these names again in the `TransformerWeights` struct in `net.h`.
 
@@ -306,7 +306,7 @@ input x (896-dim)
      output to the next layer
 ```
 
-## 1.6 Why Each Matrix Is the Size It Is
+## Why Each Matrix Is the Size It Is
 
 Every matrix's shape is determined by **input dimension × output dimension** — they aren't picked at random:
 
@@ -334,7 +334,7 @@ Every matrix's shape is determined by **input dimension × output dimension** �
   input 4864-dim → compress back to 896-dim (after thinking, return to the main road)
 ```
 
-## 1.7 Parameter Distribution of a Single Layer: MLP Is Nearly 88%
+## Parameter Distribution of a Single Layer: MLP Is Nearly 88%
 
 ```
 Normalization:           1,792     (0.01%)  ▏
@@ -374,7 +374,7 @@ pie title Composition of the whole model's 0.49B parameters
 
 The number of layers sets the "depth of thought" — each layer does one round of "look at context + process information," so 24 layers = 24 rounds of thinking. More layers means deeper relationships can be learned, but parameter count and compute also grow linearly.
 
-## 1.8 Parameter Count ≠ File Size
+## Parameter Count ≠ File Size
 
 Two numbers that are easy to confuse:
 
@@ -397,7 +397,7 @@ If int4 quantization were used:
 
 > Industry convention: the number in a model's name is an "approximate magnitude." 0.5B ≈ 500M parameters, 7B ≈ 7 billion, 72B ≈ 72 billion. Not exact figures.
 
-## 1.9 Forward Pass vs. Backward Pass
+## Forward Pass vs. Backward Pass
 
 | | Forward pass | Backward pass |
 |---|---|---|

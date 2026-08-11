@@ -23,7 +23,7 @@ This chapter first walks quickly through the three structs (4.1–4.3), then use
 
 ---
 
-## 4.1 Config — Static Configuration (What the Model Looks Like)
+## Config — Static Configuration (What the Model Looks Like)
 
 All the dimension parameters, sourced from `config.json`, immutable at runtime:
 
@@ -61,7 +61,7 @@ typedef struct {
 
 ---
 
-## 4.2 TransformerWeights — All the Weights (What the Model Has Learned)
+## TransformerWeights — All the Weights (What the Model Has Learned)
 
 The weights are stacked into contiguous arrays by layer, so they can be indexed with `layer * stride + offset`:
 
@@ -111,7 +111,7 @@ typedef struct {
 
 ---
 
-## 4.3 RunState — Working Memory (What's Used During Computation)
+## RunState — Working Memory (What's Used During Computation)
 
 Temporary buffers during the forward pass, reused on every forward step:
 
@@ -147,7 +147,7 @@ Keeping them separate is cleaner and also friendlier to multithreading (one copy
 
 ---
 
-## 4.4 Glossary in Depth (the core value)
+## Glossary in Depth (the core value)
 
 Below, every term in `net.h` is grouped and explained thoroughly. Each group comes with "plain English + why + where in the code."
 
@@ -709,7 +709,7 @@ See Chapter 2 (safetensors loading), Section 2.3.
 
 ---
 
-## 4.5 A Diagram Tying Together Every Layer's Parameters
+## A Diagram Tying Together Every Layer's Parameters
 
 ```
 input x (896-dim)
@@ -745,7 +745,7 @@ Every arrow corresponds to a segment of computation in `net.c`. For exactly how 
 
 ---
 
-## 4.6 Study Suggestions
+## Study Suggestions
 
 1. **Understand three numbers first**: `dim=896` (how long a word vector is), `n_layers=24` (how many layers),
    `vocab_size=151936` (how many words the model knows). The other numbers are all derived from these three.

@@ -11,17 +11,17 @@
 
 ## Table of Contents
 
-- [9.1 Why Numerical Verification Is Essential](#91-why-numerical-verification-is-essential)
-- [9.2 The Single-Token Verification Method](#92-the-single-token-verification-method)
-- [9.3 ASan: The Compiler's Built-in Memory Error Detector](#93-asan-the-compilers-built-in-memory-error-detector)
-- [9.4 Layer-by-Layer Dump: Bisecting to Locate Bugs](#94-layer-by-layer-dump-bisecting-to-locate-bugs)
-- [9.5 Verification Checklist](#95-verification-checklist)
-- [9.6 Recommended Learning Path](#96-recommended-learning-path)
-- [9.7 One-Sentence Summary](#97-one-sentence-summary)
+- [Why Numerical Verification Is Essential](#why-numerical-verification-is-essential)
+- [The Single-Token Verification Method](#the-single-token-verification-method)
+- [ASan: The Compiler's Built-in Memory Error Detector](#asan-the-compilers-built-in-memory-error-detector)
+- [Layer-by-Layer Dump: Bisecting to Locate Bugs](#layer-by-layer-dump-bisecting-to-locate-bugs)
+- [Verification Checklist](#verification-checklist)
+- [Recommended Learning Path](#recommended-learning-path)
+- [One-Sentence Summary](#one-sentence-summary)
 
 ---
 
-## 9.1 Why Numerical Verification Is Essential
+## Why Numerical Verification Is Essential
 
 The forward pass has 6 operators (RMSNorm, matmul, RoPE, Attention, GQA, SwiGLU). **Get any one of them wrong and the program still runs — it doesn't crash, but the output is garbage**.
 
@@ -58,7 +58,7 @@ Otherwise → something is computed wrong, need to locate it
 
 ---
 
-## 9.2 The Single-Token Verification Method
+## The Single-Token Verification Method
 
 The most effective verification technique isn't running a full sentence generation (long output, many variables, hard to locate issues), but **feeding a single token and comparing the top-5 logits**.
 
@@ -150,7 +150,7 @@ Compare each against PyTorch. Only when all of them match is the verification co
 
 ---
 
-## 9.3 ASan: The Compiler's Built-in Memory Error Detector
+## ASan: The Compiler's Built-in Memory Error Detector
 
 Just getting the numbers right isn't enough — there may be **out-of-bounds memory access** that happens not to crash (writing into someone else's memory without being noticed, a "time bomb"). Such problems can't be found by eye review; you need tools.
 
@@ -262,7 +262,7 @@ gcc -fsanitize=address,undefined -O1 -g -o run_dbg *.c -lm
 
 ---
 
-## 9.4 Layer-by-Layer Dump: Bisecting to Locate Bugs
+## Layer-by-Layer Dump: Bisecting to Locate Bugs
 
 When the single-token top-5 doesn't match, the problem could be in any step of the forward pass. How do you narrow it down? **Dump intermediate tensors layer by layer**.
 
@@ -370,7 +370,7 @@ Each kind of bug has its own "fingerprint" — the position and manner of the mi
 
 ---
 
-## 9.5 Verification Checklist
+## Verification Checklist
 
 Organize the methods above into a checkable list. **After every change to forward-pass-related code, it's recommended to go through this**:
 
@@ -415,7 +415,7 @@ Organize the methods above into a checkable list. **After every change to forwar
 
 ---
 
-## 9.6 Recommended Learning Path
+## Recommended Learning Path
 
 > This section is adapted from BOOK.md Appendix C and gives a suggested path after finishing the first 9 chapters.
 
@@ -465,7 +465,7 @@ At the end of each week, use a simple check to confirm you've learned that week'
 
 ---
 
-## 9.7 One-Sentence Summary
+## One-Sentence Summary
 
 **Numerical verification = single-token controlled variables (top-5 against the answer) + ASan for memory errors + layer-by-layer dump bisection**.
 This methodology applies to any numerical computing project, not just inference engines.

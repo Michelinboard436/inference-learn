@@ -28,7 +28,7 @@ Order of this chapter:
 
 ---
 
-## 6.1 Why tokenization is needed
+## Why tokenization is needed
 
 The model only understands numbers (token ids), not characters. The tokenizer is the bridge between text and ids:
 
@@ -52,7 +52,7 @@ Why not "one word = one id"? Because there are far too many words (English + Chi
 
 ---
 
-## 6.2 BPE (Byte-Pair Encoding)
+## BPE (Byte-Pair Encoding)
 
 ### Algorithm: start from single characters, repeatedly merge the most frequent adjacent pair
 
@@ -124,7 +124,7 @@ In the `merges` array, every two elements form a pair: `merges[2i] = a, merges[2
 
 ---
 
-## 6.3 Byte-level mapping
+## Byte-level mapping
 
 ### Problem: spaces, newlines, and other control characters don't fit nicely in a vocabulary
 
@@ -199,7 +199,7 @@ output token id sequence: [9707, 1879]
 
 ---
 
-## 6.4 Pre-tokenization
+## Pre-tokenization
 
 ### BPE doesn't run on the whole text; the text is first split into pre-tokens
 
@@ -255,7 +255,7 @@ if (c == ' ' && i + 1 < text_len) {
 
 ---
 
-## 6.5 Hash table (FNV-1a)
+## Hash table (FNV-1a)
 
 ### Problem: the vocab has 150k entries; encoding needs frequent "string → id" lookups
 
@@ -337,7 +337,7 @@ static int build_vocab_index(Tokenizer *t) {
 
 ---
 
-## 6.6 BOS / EOS / PAD
+## BOS / EOS / PAD
 
 Three special tokens mark the structure of a sequence:
 
@@ -373,7 +373,7 @@ int tokenizer_encode(Tokenizer *t, const char *text, int bos_id,
 
 ---
 
-## 6.7 The Tokenizer struct + the tokenizer.bin file format
+## The Tokenizer struct + the tokenizer.bin file format
 
 ### The Tokenizer struct
 
@@ -437,7 +437,7 @@ The load function `tokenizer_load()` (`tokenizer.c:85`) reads this layout sectio
 
 ---
 
-## 6.8 The full encode + decode flow
+## The full encode + decode flow
 
 ### encode: text → token id sequence
 
@@ -483,7 +483,7 @@ id=1879 → "Ġworld"       → reverse-map Ġ→space → output " world"
 
 ---
 
-## 6.9 Core insights, summarized
+## Core insights, summarized
 
 1. **The tokenizer is the bridge between text and numbers**: the model only understands numbers (token ids); the tokenizer splits text into tokens.
 

@@ -12,7 +12,7 @@ It sounds intimidating, but JSON's syntax is so simple that a 300-line recursive
 
 ---
 
-## 3.1 Why Write Your Own JSON Parser
+## Why Write Your Own JSON Parser
 
 The safetensors header is a JSON object that looks like this (simplified):
 
@@ -39,7 +39,7 @@ Parsing it needs a JSON parser. But we don't depend on any external library (thi
 
 > 📍 **Where**: the top comment of `json.h` explicitly states the goal: "just enough to parse the safetensors header. Does not aim for full RFC compliance."
 
-## 3.2 Recursive Descent Parsing
+## Recursive Descent Parsing
 
 This is the core idea of the entire parser.
 
@@ -159,7 +159,7 @@ Supported escapes: `\" \\ \/ \b \f \n \r \t`, plus `\uXXXX` (converts a 4-digit 
 
 > 📍 **Where**: `parse_string_raw()` in `json.c`; both passes of the scan live inside it.
 
-## 3.3 The JsonValue Tree Structure
+## The JsonValue Tree Structure
 
 Once parsing is done, the entire JSON text has become a tree in memory, where each node is a `JsonValue`:
 
@@ -247,7 +247,7 @@ JsonValue *json_object_get(JsonValue *obj, const char *key) {
 
 For a small object with a few dozen fields like a safetensors header, linear lookup is plenty fast — no hash table needed.
 
-## 3.4 How It's Used Inside Safetensors
+## How It's Used Inside Safetensors
 
 In Chapter 2, `safetensors_open()` calls `json_parse` once when opening the file, parses the header text into a tree, and caches it on `st->header`:
 
@@ -269,7 +269,7 @@ unsigned long off1 = (unsigned long)json_array_get(doff, 1)->number;
 
 That's the entire reason `json.c` exists — to give `safetensors.c` the ability to "look up tensor metadata by name."
 
-## 3.5 Memory Management
+## Memory Management
 
 All nodes are allocated with `malloc`/`calloc` and form a tree. `json_free` recursively frees the whole tree:
 
@@ -295,7 +295,7 @@ Note the detail when freeing an OBJECT node: its `first_child` list holds key no
 
 > 📍 **Where**: `json_free()` in `json.c`, called by `safetensors_close()` to free the entire header tree when the file is closed.
 
-## 3.6 Error Handling
+## Error Handling
 
 The parser's error handling is plain: there's an `error` flag in `Parser`, and any sub-parser that notices something wrong (for example the token after a key in an object isn't `:`, or `strtod` fails on a number) sets `error` to 1 and returns `NULL`. The caller `parse_value` gets `NULL` and returns `NULL` all the way up; eventually `json_parse` sees `error`, discards the half-built result, and returns `NULL`.
 

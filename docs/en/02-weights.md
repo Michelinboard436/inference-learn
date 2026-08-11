@@ -10,7 +10,7 @@ In Chapter 1 we computed that the model has 494 million parameters, but they don
 
 ---
 
-## 2.1 The Safetensors File Format
+## The Safetensors File Format
 
 HuggingFace's safetensors format is extremely minimal, designed for "safety (can't execute code) + speed (mmap-friendly)." Its binary layout looks like this:
 
@@ -51,7 +51,7 @@ flowchart TB
 
 > 📍 **Where**: the comment at the top of `safetensors.h` reiterates this layout. The `safetensors_open()` function (in `safetensors.c`) parses these three segments in order.
 
-## 2.2 Core Terminology
+## Core Terminology
 
 Before diving into the code, let's clarify two low-level concepts — they explain why the code is written the way it is.
 
@@ -97,7 +97,7 @@ static unsigned long read_u64_le(const unsigned char *b) {
 
 > 📍 **Where**: `read_u64_le()` in `safetensors.c`, used to read the 8-byte header length at the very start of the file.
 
-## 2.3 Data Types: bf16 / fp16 / fp32
+## Data Types: bf16 / fp16 / fp32
 
 The weights are stored in **bfloat16** (saves half the space), but the engine computes in **float32** (higher precision). So at load time we do a `bf16 → fp32` conversion.
 
@@ -139,7 +139,7 @@ memcpy(&out[i], &bits, 4);           // bit-reinterpret as float
 
 The comment at the top of `safetensors.c` specifically emphasizes this rule — why you must use `memcpy(&f, &fp32_bits, 4)` instead of dereferencing directly. This is a classic C pitfall; violating strict aliasing under `-O2` optimization can cause bizarre bugs.
 
-## 2.4 The Weight Tensor Naming Convention
+## The Weight Tensor Naming Convention
 
 Qwen2.5's tensor naming inside safetensors follows the transformers convention:
 
@@ -192,7 +192,7 @@ Each layer is loaded into a temporary buffer, then `memcpy`-ed into the right sl
 
 > 📍 **Where**: `load_layered()` and the `LAYER_NAME` macro in `safetensors.c`, called repeatedly by `safetensors_load_weights()`.
 
-## 2.5 Example: The Embedding Table's Exact Position in the File
+## Example: The Embedding Table's Exact Position in the File
 
 Talking about the layout is still abstract. Let's look at the real data with `./run info`:
 
@@ -290,7 +290,7 @@ row151935│ 0.025  -0.006  0.010  ... -0.002  │
 
 > **Where do these 896 numbers come from?** They were trained. During training, the model continuously adjusts these 135 million numbers so that words with similar meanings end up with similar vectors. What's stored in the loaded safetensors is the optimal values after training finished.
 
-## 2.6 The SafetensorsFile Struct
+## The SafetensorsFile Struct
 
 The entire loading process revolves around a single struct, `SafetensorsFile`, defined in `safetensors.h`:
 

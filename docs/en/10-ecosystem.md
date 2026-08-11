@@ -14,23 +14,23 @@
 
 ## Table of Contents
 
-- [10.1 One Diagram to Understand the Four Implementations](#101-one-diagram-to-understand-the-four-implementations)
-- [10.2 Tech-Stack Layer-by-Layer Comparison](#102-tech-stack-layer-by-layer-comparison)
-- [10.3 Why "One Engine to Run All Models" Is Impossible](#103-why-one-engine-to-run-all-models-is-impossible)
-- [10.4 Computing Fast vs Scheduling Well](#104-computing-fast-vs-scheduling-well)
-- [10.5 Why GPU Instead of CPU](#105-why-gpu-instead-of-cpu)
-- [10.6 Where the Performance Gap Comes From](#106-where-the-performance-gap-comes-from)
-- [10.7 When the Model Doesn't Fit: 5 Loading Strategies](#107-when-the-model-doesnt-fit-5-loading-strategies)
-- [10.8 Reading vLLM's Dependency List](#108-reading-vllms-dependency-list)
-- [10.9 Applicable Scenarios per Engine](#109-applicable-scenarios-per-engine)
-- [10.10 The Evolution Path from Hand-Written to Industrial Engine](#1010-the-evolution-path-from-hand-written-to-industrial-engine)
-- [10.11 What's Specifically Missing: This Project vs vLLM vs SGLang](#1011-whats-specifically-missing-this-project-vs-vllm-vs-sglang)
-- [10.12 Core Insights](#1012-core-insights)
-- [10.13 One-Sentence Summary](#1013-one-sentence-summary)
+- [One Diagram to Understand the Four Implementations](#one-diagram-to-understand-the-four-implementations)
+- [Tech-Stack Layer-by-Layer Comparison](#tech-stack-layer-by-layer-comparison)
+- [Why "One Engine to Run All Models" Is Impossible](#why-one-engine-to-run-all-models-is-impossible)
+- [Computing Fast vs Scheduling Well](#computing-fast-vs-scheduling-well)
+- [Why GPU Instead of CPU](#why-gpu-instead-of-cpu)
+- [Where the Performance Gap Comes From](#where-the-performance-gap-comes-from)
+- [When the Model Doesn't Fit: 5 Loading Strategies](#when-the-model-doesnt-fit-5-loading-strategies)
+- [Reading vLLM's Dependency List](#reading-vllms-dependency-list)
+- [Applicable Scenarios per Engine](#applicable-scenarios-per-engine)
+- [The Evolution Path from Hand-Written to Industrial Engine](#the-evolution-path-from-hand-written-to-industrial-engine)
+- [What's Specifically Missing: This Project vs vLLM vs SGLang](#whats-specifically-missing-this-project-vs-vllm-vs-sglang)
+- [Core Insights](#core-insights)
+- [One-Sentence Summary](#one-sentence-summary)
 
 ---
 
-## 10.1 One Diagram to Understand the Four Implementations
+## One Diagram to Understand the Four Implementations
 
 First the big picture. The exact same `Attention(Q,K,V) = softmax(QKᵀ/√d)V` ends up looking wildly different across four implementations:
 
@@ -69,11 +69,11 @@ Multi-dimensional comparison of the four:
 
 ---
 
-## 10.2 Tech-Stack Layer-by-Layer Comparison
+## Tech-Stack Layer-by-Layer Comparison
 
 To see "where the difference is", lay the tech stacks of these three implementations out layer by layer.
 
-### 10.2.1 This Project (Your Hand-Written Engine)
+### This Project (Your Hand-Written Engine)
 
 ```
 ┌──────────────────────────────────┐
@@ -90,7 +90,7 @@ To see "where the difference is", lay the tech stacks of these three implementat
 
 **Characteristics**: all logic lives at **the same abstraction level**. Open `net.c` and from `forward()` you can read the entire computation flow in one glance. No indirect calls, no dynamic dispatch, no CUDA, no PyTorch, no HTTP server.
 
-### 10.2.2 vLLM's Tech Stack
+### vLLM's Tech Stack
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -117,7 +117,7 @@ To see "where the difference is", lay the tech stacks of these three implementat
 
 **Characteristics**: **7 layers of abstraction**. A single `model.generate()` call has to pass through Python → PyTorch → C++ → CUDA → GPU. Each layer applies its own optimizations, but together they make "how is this actually computed" opaque.
 
-### 10.2.3 llama.cpp's Tech Stack (the Middle Ground)
+### llama.cpp's Tech Stack (the Middle Ground)
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -137,7 +137,7 @@ To see "where the difference is", lay the tech stacks of these three implementat
 
 **Characteristics**: like your engine, it's "written from the bottom up", but it adds a **home-grown tensor library ggml** (essentially writing its own mini cuBLAS), plus quantization and SIMD.
 
-### 10.2.4 Three Layers Compared at a Glance
+### Three Layers Compared at a Glance
 
 ```
 This project   llama.cpp        vLLM
@@ -152,11 +152,11 @@ More layers = more features and higher performance, but also harder to understan
 
 ---
 
-## 10.3 Why "One Engine to Run All Models" Is Impossible
+## Why "One Engine to Run All Models" Is Impossible
 
 You may have noticed: this project's `net.c` is **written specifically for Qwen2.5**. Switching to another model means changing the code. This isn't laziness on our part — it's **the core contradiction of the entire AI inference ecosystem**.
 
-### 10.3.1 Every Model Adds Its Own Twist on the Base Architecture
+### Every Model Adds Its Own Twist on the Base Architecture
 
 ```
                   Norm        Positional encoding   Attention       QKV bias    Activation   Embedding
@@ -174,7 +174,7 @@ Each model changes something:
 - **DeepSeek-V2** replaced GQA with MLA and swapped MLP for MoE (multiple expert networks)
 - **Llama-3** bumped RoPE's theta from 10k to 500k (to support longer context)
 
-### 10.3.2 What These Differences Mean for the Engine
+### What These Differences Mean for the Engine
 
 Going from Qwen2.5 to supporting other models, here's what code needs to change:
 
@@ -186,7 +186,7 @@ Switch to DeepSeek:   🔴 rewrite (replace attention with MLA, MLP with MoE, de
 
 The more "twists" a model adds, the bigger the engine changes. **DeepSeek's MLA and MoE are brand-new structures — you essentially have to rewrite the attention and MLP halves of `net.c`**.
 
-### 10.3.3 Three Solutions That Emerged From This
+### Three Solutions That Emerged From This
 
 | Approach | Representative | How it handles new models | Cost |
 |------|------|--------------|------|
@@ -209,7 +209,7 @@ Approach ③ (graph):         Generality ★★★★★     Simplicity ★     
                PyTorch has tens of millions of lines because it has to support every structure
 ```
 
-### 10.3.4 This Explains Two Common Questions
+### This Explains Two Common Questions
 
 **"Why does vLLM depend on PyTorch?"**
 Because PyTorch is approach ③ — it implements every possible operator and can run any model. vLLM stands on PyTorch's shoulders and adds only scheduling optimizations.
@@ -217,7 +217,7 @@ Because PyTorch is approach ③ — it implements every possible operator and ca
 **"Why is our engine only 2000 lines?"**
 Because we're approach ① — we only support one model, Qwen2.5. We don't need `if/else` to adapt to multiple structures, so the code is extremely minimal.
 
-### 10.3.5 This Contradiction Keeps Driving New Formats
+### This Contradiction Keeps Driving New Formats
 
 Every time a new model architecture appears (e.g. DeepSeek's MLA), every engine has to follow suit:
 
@@ -231,11 +231,11 @@ This is why inference engines update so frequently — **it's not that the engin
 
 ---
 
-## 10.4 Computing Fast vs Scheduling Well
+## Computing Fast vs Scheduling Well
 
 Many people assume vLLM is faster than llama.cpp because of "a better algorithm". It isn't. **The same attention formula — vLLM's real advantage lies in scheduling**.
 
-### 10.4.1 Computing Fast: GPU + Specialized Kernels
+### Computing Fast: GPU + Specialized Kernels
 
 This is the most intuitive difference. Take the same matrix multiply:
 
@@ -257,7 +257,7 @@ output = torch.matmul(W, x)   # under the hood calls cuBLAS
 
 A GPU has thousands of cores working at once, plus Tensor Cores purpose-built for matrix multiplies. This isn't "a better algorithm" — it's **hardware parallelism crushing the competition**. This part is "computing fast", and you can add it incrementally in C (quantization, SIMD).
 
-### 10.4.2 Scheduling Well: vLLM's Real Innovation
+### Scheduling Well: vLLM's Real Innovation
 
 This is where vLLM earns its money. Consider this scenario:
 
@@ -288,7 +288,7 @@ D                   ████████████████████
 
 **Effect**: GPU utilization jumps from ~30% to ~95%. Under concurrency, vLLM's throughput is 10-20x that of llama.cpp.
 
-### 10.4.3 PagedAttention: Memory Management for KV Cache
+### PagedAttention: Memory Management for KV Cache
 
 Traditional KV Cache (what your engine uses):
 
@@ -316,7 +316,7 @@ Allocated on demand, no waste, memory utilization ~95%
 
 This lets vLLM pack more concurrent requests into the same amount of VRAM.
 
-### 10.4.4 The Relationship Among the Three Things
+### The Relationship Among the Three Things
 
 ```
 "Computing fast" (hardware + operator layer):
@@ -334,12 +334,12 @@ This lets vLLM pack more concurrent requests into the same amount of VRAM.
 
 ---
 
-## 10.5 Why GPU Instead of CPU
+## Why GPU Instead of CPU
 
 A fundamental question: our engine runs on CPU (~3 tok/s). Why does the industry use GPUs?
 The answer is hidden right inside the Transformer's parameter list — **matrix multiplication is a sea of independent operations, born for parallelism**.
 
-### 10.5.1 How Many Multiplies Does a Single Token Take
+### How Many Multiplies Does a Single Token Take
 
 Take this project's 0.5B model — for every token generated:
 
@@ -372,7 +372,7 @@ Llama-3.1-405B     405 TFLOP              1012 s             0.649 s
 CPU vs GPU gap: 100-1000x
 ```
 
-### 10.5.2 Why Is the GPU So Much Faster
+### Why Is the GPU So Much Faster
 
 The matrix multiply `out[i] = Σ W[i][j] × x[j]` has a key property: **each row's computation is fully independent**.
 
@@ -408,7 +408,7 @@ CPU (8-16 cores):                GPU (thousands-tens of thousands of cores):
   GPU (6912 people): one box each, all done at once         → 600x+ faster
 ```
 
-### 10.5.3 That's Why Transformers Are Naturally Suited to GPUs
+### That's Why Transformers Are Naturally Suited to GPUs
 
 Every Transformer layer is a few large matrix multiplies, and each matrix multiply is thousands of independent row-computations — a perfect match for the GPU's "thousands of cores in parallel".
 
@@ -424,7 +424,7 @@ Our C engine runs on CPU, so the `for (i...) for (j...)` in `net.c` is serial �
 
 ---
 
-## 10.6 Where the Performance Gap Comes From
+## Where the Performance Gap Comes From
 
 For Qwen2.5-0.5B, single-token generation speed comparison:
 
@@ -461,13 +461,13 @@ Note: **the first 4 optimizations are "computing fast", which your engine can ad
 
 ---
 
-## 10.7 When the Model Doesn't Fit: 5 Loading Strategies
+## When the Model Doesn't Fit: 5 Loading Strategies
 
 Everything above is about small models like 0.5B (2GB of weights, just stuff it into memory).
 But real-world large models are routinely tens or hundreds of GB, while **a single GPU's VRAM is only a few tens of GB** — they don't fit.
 This is the core challenge of large-model engineering, and the industry has 5 solutions.
 
-### 10.7.1 How Big Is the Problem
+### How Big Is the Problem
 
 ```
 Model                Parameters   fp16 weights   Fits in one card?
@@ -486,7 +486,7 @@ GPU VRAM reference:
 
 **Core contradiction**: models keep growing; VRAM can't keep up. 405B needs 825GB, the largest single card has 141GB — a 6x gap.
 
-### 10.7.2 Strategy ①: Quantization Compression (most common)
+### Strategy ①: Quantization Compression (most common)
 
 **In one sentence**: use fewer bits to approximately represent the same weights, trading a little precision for smaller size and faster speed.
 
@@ -589,7 +589,7 @@ Only extreme quantization (int2) noticeably degrades quality.
 
 If you wanted to add a quantized version, you'd decode the weights from int4 to fp32 inside `matmul` before computing. llama.cpp's Q4_K_M format does exactly this.
 
-### 10.7.3 Strategy ②: Tensor Parallelism — Slice the Matrix
+### Strategy ②: Tensor Parallelism — Slice the Matrix
 
 **Principle**: slice a large matrix **by rows or by columns**, putting each slice on a different card.
 
@@ -617,7 +617,7 @@ If you wanted to add a quantized version, you'd decode the weights from int4 to 
 
 > This project is single-threaded and has no such concept. Once you understand matmul's row loop, you understand row-sliced tensor parallelism.
 
-### 10.7.4 Strategy ③: Pipeline Parallelism — Slice by Layer
+### Strategy ③: Pipeline Parallelism — Slice by Layer
 
 **Principle**: slice by layer — **each card handles a few layers**.
 
@@ -638,7 +638,7 @@ If you wanted to add a quantized version, you'd decode the weights from int4 to 
 
 > In this project's `forward()`, the `for (l = 0; l < L; l++)` loop has each layer independent, so it's naturally sliceable across cards.
 
-### 10.7.5 Strategy ④: CPU Offloading — Fetch on Demand
+### Strategy ④: CPU Offloading — Fetch on Demand
 
 **Principle**: VRAM can't hold everything, but **server main memory is large** (often 1TB). Keep weights in main memory and move each layer to VRAM only when needed.
 
@@ -659,7 +659,7 @@ If you wanted to add a quantized version, you'd decode the weights from int4 to 
 
 **Use case**: when you can't afford multiple cards but still want to run a large model. This project uses `mmap` to map weights into memory — essentially the CPU version of the same idea.
 
-### 10.7.6 Strategy ⑤: MoE Expert Parallelism — Use Only a Fraction
+### Strategy ⑤: MoE Expert Parallelism — Use Only a Fraction
 
 **Principle**: DeepSeek-V2, Mixtral, GPT-4 all use MoE (Mixture of Experts) — **each token uses only a fraction of the weights**.
 
@@ -681,7 +681,7 @@ MoE model: has 256 "experts", for each word the router picks only 8
 
 **Cost**: the total parameters still all need to be stored (but you can swap them in and out + quantize).
 
-### 10.7.7 How They Combine in Practice
+### How They Combine in Practice
 
 Deploying a large model usually **stacks multiple methods**:
 
@@ -712,7 +712,7 @@ These methods **are not mutually exclusive — they combine**. vLLM is popular b
 
 ---
 
-## 10.8 Reading vLLM's Dependency List
+## Reading vLLM's Dependency List
 
 vLLM's `requires_dist` on PyPI (the real dependency list), grouped by function:
 
@@ -767,7 +767,7 @@ That's it. vLLM has **30+**. This isn't vLLM being bloated — it's that what pr
 
 ---
 
-## 10.9 Applicable Scenarios per Engine
+## Applicable Scenarios per Engine
 
 | Need | Recommendation | Why |
 |------|------|--------|
@@ -782,7 +782,7 @@ That's it. vLLM has **30+**. This isn't vLLM being bloated — it's that what pr
 
 ---
 
-## 10.10 The Evolution Path from Hand-Written to Industrial Engine
+## The Evolution Path from Hand-Written to Industrial Engine
 
 If you wanted to take the current hand-written engine and gradually turn it into a "usable" engine, here's the path:
 
@@ -815,11 +815,11 @@ This step requires re-architecting the entire inference loop — from "one reque
 
 ---
 
-## 10.11 What's Specifically Missing: This Project vs vLLM vs SGLang
+## What's Specifically Missing: This Project vs vLLM vs SGLang
 
 The previous sections covered principle-level differences. This one gives a **concrete feature list and performance numbers**, so you know exactly "which parts you're still missing for a production engine".
 
-### 10.11.1 Feature-Gap List
+### Feature-Gap List
 
 ```
 Category        Feature                This project  vLLM        SGLang
@@ -853,7 +853,7 @@ Model support   Architecture variety   1 (Qwen)      dozens      dozens
                 Quantization formats   none          10+         10+
 ```
 
-### 10.11.2 Three Categories of Gap, Explained
+### Three Categories of Gap, Explained
 
 #### Category 1: Scheduling & Concurrency (the core gap)
 
@@ -951,7 +951,7 @@ This part is about "can it be used", not "is it fast":
 | Multimodal | ❌ | ✅ | Support image / audio input |
 | LoRA | ❌ | ✅ | Load fine-tuned weights |
 
-### 10.11.3 How Big Is the Performance Gap
+### How Big Is the Performance Gap
 
 Same Qwen2.5-7B:
 
@@ -971,7 +971,7 @@ Single-request speed:   this project 50x slower (CPU vs GPU)
 Concurrent throughput:  this project 1000x slower (serial vs batching) ← biggest gap
 ```
 
-### 10.11.4 vLLM vs SGLang (comparing two top-tier engines)
+### vLLM vs SGLang (comparing two top-tier engines)
 
 Both have PagedAttention, Continuous Batching, quantization, multi-card, HTTP API. The differences:
 
@@ -988,7 +988,7 @@ Both have PagedAttention, Continuous Batching, quantization, multi-card, HTTP AP
 - **Broader hardware support**: NVIDIA / AMD / Intel / TPU
 - **Stability**: proven at large-scale production
 
-### 10.11.5 But These Aren't Defects — They're Different Design Goals
+### But These Aren't Defects — They're Different Design Goals
 
 ```
 This project (learning engine):
@@ -1006,11 +1006,11 @@ vLLM / SGLang (production engines):
 
 ---
 
-## 10.12 Long Context: Both Model and Hardware Are Essential
+## Long Context: Both Model and Hardware Are Essential
 
 You may have noticed that different models claim wildly different context lengths: GPT-2 is 1024, Qwen2.5 is 32K, Claude 3 is 200K, Gemini 1.5 is 1M. **Supporting long context isn't only about hardware — the model itself must support it too** — both are indispensable.
 
-### 10.12.1 Model Side: Position Encoding Must Reach That Far
+### Model Side: Position Encoding Must Reach That Far
 
 This is the most fundamental prerequisite. Recall RoPE from Chapter 5 — position encoding distinguishes positions via rotation angles:
 
@@ -1045,7 +1045,7 @@ Additional techniques for long-context models:
 - **Memory compression** (Gemini): compress early tokens into a summary rather than truly storing a million KV entries
 - **Sliding window** (Mistral): precisely retain only the most recent N tokens, fuzz the rest
 
-### 10.12.2 Hardware Side: Can the KV Cache Fit
+### Hardware Side: Can the KV Cache Fit
 
 Assume the model side is fine (position encoding is adequate) — **whether the hardware can hold the KV Cache is the second threshold**.
 
@@ -1064,7 +1064,7 @@ Llama-3-405B      1,000,000    1,032 GB          ← the cache alone is 1TB!
 
 **KV Cache memory is linear in seq_len** — double seq_len, double memory. This is why long context is so expensive: it's not that the model can't compute, it's that **memory can't hold it**.
 
-### 10.12.3 Compute Cost: Attention Grows Quadratically
+### Compute Cost: Attention Grows Quadratically
 
 The attention score matrix is `[seq_len, seq_len]`, so compute is **O(seq_len²)**:
 
@@ -1077,7 +1077,7 @@ seq_len = 1,000,000: 1 trillion scores     ← 250 million x!
 
 That's why **Flash Attention** is needed — it brings O(n²) memory down to O(n), otherwise just storing the attention matrix blows up VRAM.
 
-### 10.12.4 How Industrial Engines Make 1M Possible
+### How Industrial Engines Make 1M Possible
 
 Model support + big enough hardware still isn't enough — the inference engine also has to apply engineering optimizations:
 
@@ -1090,7 +1090,7 @@ Model support + big enough hardware still isn't enough — the inference engine 
 | **Sliding window** | Only attend to the most recent N tokens, ignore the rest | Mistral |
 | **Memory compression** | Compress early tokens into a summary | Gemini 1.5 |
 
-### 10.12.5 This Project's seq_len
+### This Project's seq_len
 
 This project uses `seq_len = 2048` (hardcoded in `run.c`). Changing it to 32768 takes one line:
 
@@ -1108,7 +1108,7 @@ seq_len=200000: KV Cache 4.9GB, total memory 6.9GB  ← memory gets tight
 
 The model itself (Qwen2.5-0.5B) supports 32768 — its RoPE theta=1,000,000 easily covers that distance. Our engine just **doesn't allocate that large a cache** — it's an engineering choice, not a model limitation.
 
-### 10.12.6 Summary
+### Summary
 
 ```
 Supporting long context = model support + big enough hardware + engine optimization
@@ -1130,9 +1130,9 @@ Engine side:
 
 ---
 
-## 10.13 Core Insights
+## Core Insights
 
-### 10.13.1 vLLM's Real Value Isn't the Algorithm, It's the Scheduling
+### vLLM's Real Value Isn't the Algorithm, It's the Scheduling
 
 Many people first hearing about vLLM assume it uses some "better attention algorithm". It doesn't — **it computes the same mathematical formula as your hand-written engine**:
 
@@ -1147,7 +1147,7 @@ vLLM's real innovations are at the scheduling layer:
 
 Neither has anything to do with "computing faster" — same GPU, same operators, just letting **multiple requests share compute**. This is an engineering innovation, not a mathematical one.
 
-### 10.13.2 Your Engine and vLLM Compute Exactly the Same Math
+### Your Engine and vLLM Compute Exactly the Same Math
 
 | Question | Answer |
 |------|------|
@@ -1157,7 +1157,7 @@ Neither has anything to do with "computing faster" — same GPU, same operators,
 | Does your engine have value? | **Yes** — it's the foundation for understanding all of the above |
 | Should I use vLLM or hand-write? | **Depends on the goal**: learning → hand-write, production → vLLM |
 
-### 10.13.3 Why Understanding the Principles Matters
+### Why Understanding the Principles Matters
 
 ```
 Using vLLM without understanding the math:
@@ -1175,7 +1175,7 @@ That's why the first 9 chapters of this book walk you through hand-writing an en
 
 ---
 
-## 10.14 One-Sentence Summary
+## One-Sentence Summary
 
 | Question | Answer |
 |------|------|

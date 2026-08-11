@@ -14,17 +14,17 @@ The logging and visualization system covered in this chapter lets you **see** th
 
 ## Table of Contents
 
-- [8.1 Tiered Logging: info / debug / trace](#81-tiered-logging-info--debug--trace)
-- [8.2 stderr vs stdout: Separate Logs from Generation](#82-stderr-vs-stdout-separate-logs-from-generation)
-- [8.3 TTY Detection and ANSI Colors](#83-tty-detection-and-ansi-colors)
-- [8.4 Vector Statistics: Norm, Activation Ratio](#84-vector-statistics-norm-activation-ratio)
-- [8.5 HTML Report](#85-html-report)
-- [8.6 Variadic Functions: va_list](#86-variadic-functions-va_list)
-- [8.7 One-Sentence Summary](#87-one-sentence-summary)
+- [Tiered Logging: info / debug / trace](#tiered-logging-info--debug--trace)
+- [stderr vs stdout: Separate Logs from Generation](#stderr-vs-stdout-separate-logs-from-generation)
+- [TTY Detection and ANSI Colors](#tty-detection-and-ansi-colors)
+- [Vector Statistics: Norm, Activation Ratio](#vector-statistics-norm-activation-ratio)
+- [HTML Report](#html-report)
+- [Variadic Functions: va_list](#variadic-functions-va_list)
+- [One-Sentence Summary](#one-sentence-summary)
 
 ---
 
-## 8.1 Tiered Logging: info / debug / trace
+## Tiered Logging: info / debug / trace
 
 Logging is divided into four levels; the larger the number, the more verbose:
 
@@ -88,7 +88,7 @@ Logs below the current level are **completely skipped** (not even the arguments 
 
 ---
 
-## 8.2 stderr vs stdout: Separate Logs from Generation
+## stderr vs stdout: Separate Logs from Generation
 
 **This is the single most important design decision in the whole logging system**: logs go to stderr, generated text goes to stdout.
 
@@ -129,7 +129,7 @@ If both logs and generation went to stdout, all these scenarios would break — 
 
 ---
 
-## 8.3 TTY Detection and ANSI Colors
+## TTY Detection and ANSI Colors
 
 ### TTY Detection
 
@@ -236,7 +236,7 @@ When not a TTY, no color codes are emitted at all, keeping the redirected output
 
 ---
 
-## 8.4 Vector Statistics: Norm, Activation Ratio
+## Vector Statistics: Norm, Activation Ratio
 
 Dumping raw numbers is useless — printing an 896-dimensional vector is gibberish. The logging system provides several **summary functions** that compress a vector down to one or two meaningful numbers.
 
@@ -316,7 +316,7 @@ Just looking at these numbers tells you whether the model is healthy: norms are 
 
 ---
 
-## 8.5 HTML Report
+## HTML Report
 
 Terminal logs scroll by fast and are hard to read. `report.c` renders the same set of logs into a **self-contained HTML file** that you can browse at your own pace and share.
 
@@ -426,7 +426,7 @@ static void trace_append(LogLevel level, LogCategory cat, int indent,
 
 ---
 
-## 8.6 Variadic Functions: va_list
+## Variadic Functions: va_list
 
 Functions like `LOGI("a=%d b=%f", a, b)` that take a "variable number of arguments" rely on C's `va_list` mechanism.
 
@@ -483,7 +483,7 @@ Because `...` is not a real parameter — you can't **forward** it to another fu
 
 ---
 
-## 8.7 One-Sentence Summary
+## One-Sentence Summary
 
 **The logging system = tiering (info/debug/trace) + stream separation (stderr for logs / stdout for generation) + summaries (norm/activation ratio compress vectors into numbers) + visualization (HTML report)**.
 These four pieces working together turn the internal computation of a 0.5B model from a black box into an observable process — which is the prerequisite that makes the debugging methodology of Chapter 9 possible.

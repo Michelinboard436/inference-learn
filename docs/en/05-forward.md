@@ -20,7 +20,7 @@ How this chapter is organized:
 
 ---
 
-## 5.0 A token's journey: from embedding to logits
+## A token's journey: from embedding to logits
 
 Before looking at the individual operators, let's use real data to see exactly "what happens when a token comes in."
 
@@ -145,7 +145,7 @@ Layers 16-23 (deep):     learn semantics, reasoning
 
 ---
 
-## 5.1 The complete flow of a single Transformer layer
+## The complete flow of a single Transformer layer
 
 The diagram below is the "map" for this chapter; sections 5.2–5.9 each correspond to a step in it:
 
@@ -206,7 +206,7 @@ Corresponding source: the `forward()` function in `net.c` (starting at line 182)
 
 ---
 
-## 5.2 Operator 1: RMSNorm (normalization)
+## Operator 1: RMSNorm (normalization)
 
 ### First, see what happens without normalization
 
@@ -372,7 +372,7 @@ RMSNorm skips one step (no need to compute the mean), so it's cheaper to compute
 
 ---
 
-## 5.3 Operator 2: matmul (matrix-vector multiply)
+## Operator 2: matmul (matrix-vector multiply)
 
 **The most time-consuming part** (95%+ of the compute).
 
@@ -443,7 +443,7 @@ Input 128 tokens:  score shape = [128, 128]
 
 ---
 
-## 5.4 Operator 3: RoPE (Rotary Position Encoding)
+## Operator 3: RoPE (Rotary Position Encoding)
 
 **Problem**: attention is permutation-invariant by itself — shuffle the tokens and Q/K/V don't change. But word order matters in language.
 **Solution**: encode position via "rotation." Vectors at different positions are rotated by different angles.
@@ -537,7 +537,7 @@ for (int h = 0; h < nkvhead; h++) {
 
 ---
 
-## 5.5 Operator 4: Attention
+## Operator 4: Attention
 
 **Core formula**: `Attention(Q,K,V) = softmax(Q·Kᵀ / √d) · V`
 
@@ -834,7 +834,7 @@ Each layer deepens the understanding on top of the previous; 24 layers accumulat
 
 ---
 
-## 5.6 Operator 5: GQA (Grouped-Query Attention)
+## Operator 5: GQA (Grouped-Query Attention)
 
 **Problem**: standard attention pairs each Q head with its own KV, making the KV Cache too large.
 **Solution**: multiple Q heads share one set of KV.
@@ -869,7 +869,7 @@ Comparison of three attention schemes:
 
 ---
 
-## 5.7 Operator 6: SwiGLU MLP
+## Operator 6: SwiGLU MLP
 
 **Structure**: expand → gate → compress
 
@@ -916,7 +916,7 @@ ReLU is a hard gate (either 0 or the original value); SwiGLU is more flexible.
 
 ---
 
-## 5.8 Residual connections
+## Residual connections
 
 Each layer has two residuals (after attention and after MLP):
 
@@ -940,7 +940,7 @@ Each layer "adds a small correction on top of the original input" rather than re
 
 ---
 
-## 5.9 Final output
+## Final output
 
 After 24 layers, the vector `s->x` still needs two final steps to become logits:
 
@@ -977,7 +977,7 @@ next token id
 
 ---
 
-## 5.10 Tying it all together: a token going through forward once
+## Tying it all together: a token going through forward once
 
 Linking 5.1–5.9, here is the complete path of a token (assume pos=5) from input to logits:
 
@@ -1013,7 +1013,7 @@ Every step corresponds to a specific block of code in `net.c`. It's worth openin
 
 ---
 
-## 5.11 Core insights, summarized
+## Core insights, summarized
 
 1. **Forward only, no backward**: an inference engine only computes the forward pass and needs no gradients — that's why 2000 lines of C is enough to implement it.
 
