@@ -126,15 +126,38 @@ inference-learn/
 
 ## 🧠 What you'll learn / 你会学到什么
 
-- ✅ How 500M weights are organized, stored, and loaded
-- ✅ What happens step-by-step inside 24 Transformer layers
-- ✅ Why RMSNorm (without it, values explode), RoPE (rotary position), GQA (7× less memory)
-- ✅ How KV Cache reduces generation complexity from O(N²) to O(N)
-- ✅ How BPE splits text into tokens, how sampling picks words
-- ✅ How your engine compares to vLLM — where, how much, why
-- ✅ Why LLMs use GPUs not CPUs (the 100-1000× gap explained)
+- ✅ How 500M weights are organized, stored, and loaded / 5 亿个权重怎么存
+- ✅ What happens step-by-step inside 24 Transformer layers / 24 层内部发生了什么
+- ✅ **RMSNorm**（归一化）: 不用它数值会爆炸，为什么比 LayerNorm 好
+- ✅ **RoPE**（旋转位置编码）: 用旋转角度编码位置，为什么比绝对位置编码强
+- ✅ **GQA**（分组注意力）: 14 个头共享 2 组 KV，省 7 倍内存
+- ✅ **KV Cache**（键值缓存）: 把生成复杂度从 O(N²) 降到 O(N)
+- ✅ **BPE**（分词器）: 怎么把文字切成 token，采样怎么选词
+- ✅ How your engine compares to vLLM — where, how much, why / 和 vLLM 差在哪
+- ✅ Why LLMs use GPUs not CPUs (the 100-1000× gap) / 为什么用 GPU
 
-**Out of scope**: training, backpropagation, GPU programming, distributed deployment.
+**Out of scope / 不涉及**: training, backpropagation, GPU programming, distributed deployment / 训练、反向传播、GPU 编程、分布式部署
+
+<details>
+<summary><b>🔤 核心术语速查（看不懂缩写？点这里）</b></summary>
+
+| 术语 | 全称 | 一句话解释 |
+|------|------|-----------|
+| **RMSNorm** | Root Mean Square Normalization | 归一化。防止数值经过 24 层后爆炸。每层做 2 次 |
+| **LayerNorm** | Layer Normalization | 归一化的老版本（多一步减均值）。现代模型用 RMSNorm 替代 |
+| **RoPE** | Rotary Position Embedding | 旋转位置编码。用旋转角度告诉模型"这个词在第几个位置" |
+| **GQA** | Grouped Query Attention | 分组注意力。14 个查询头共享 2 组 KV，省 7 倍内存 |
+| **SwiGLU** | Swish-Gated Linear Unit | 门控激活函数。决定哪些信息通道该激活、哪些该抑制 |
+| **KV Cache** | Key-Value Cache | 键值缓存。把算过的 K/V 存起来避免重算，生成速度 ×100 |
+| **BPE** | Byte-Pair Encoding | 字节对编码分词。把文字切成 token（如 "Hello" → 9707）|
+| **Attention** | 注意力机制 | 让每个词"看到"其他词，决定关注谁、忽略谁 |
+| **Token** | — | 模型处理的最小单位。一个中文字或一个英文片段 |
+| **Logits** | — | 模型对每个词打的分。分数最高的就是最可能的下一个词 |
+| **Embedding** | 词嵌入 | 查表把 token 变成 896 个数字，是模型"理解"词的方式 |
+| **Prefill** | 预填充 | 把 prompt 逐个读进 KV Cache，不采样 |
+| **Decode** | 解码 | 用 KV Cache 逐个生成新 token |
+
+</details>
 
 ## 📊 Performance
 

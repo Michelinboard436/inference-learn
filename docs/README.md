@@ -164,6 +164,30 @@ prefill + decode 两阶段、temperature / top-k 采样、轮盘赌、为什么 
 
 ---
 
+## 🔤 核心术语速查
+
+读到看不懂的缩写？先看这里：
+
+| 术语 | 全称 | 一句话解释 |
+|------|------|-----------|
+| **RMSNorm** | Root Mean Square Normalization | 归一化。防止数值经过 24 层后爆炸。每层做 2 次（attention 前 + MLP 前）|
+| **LayerNorm** | Layer Normalization | 归一化的老版本（多一步减均值）。现代模型用 RMSNorm 替代 |
+| **RoPE** | Rotary Position Embedding | 旋转位置编码。用旋转角度告诉模型"这个词在第几个位置" |
+| **GQA** | Grouped Query Attention | 分组注意力。14 个查询头共享 2 组 KV，省 7 倍内存 |
+| **SwiGLU** | Swish-Gated Linear Unit | 门控激活函数。决定哪些信息通道该激活、哪些该抑制 |
+| **KV Cache** | Key-Value Cache | 键值缓存。把算过的 K/V 存起来避免重算，生成速度 ×100 |
+| **BPE** | Byte-Pair Encoding | 字节对编码分词。把文字切成 token（如 "Hello" → 9707）|
+| **Attention** | 注意力机制 | 让每个词"看到"其他词，决定关注谁、忽略谁 |
+| **Token** | — | 模型处理的最小单位。一个中文字或一个英文片段 |
+| **Logits** | — | 模型对每个词打的分（未归一化）。分数最高的就是最可能的下一个词 |
+| **Embedding** | 词嵌入 | 查表把 token id 变成 896 个数字（向量），是模型"理解"词的方式 |
+| **Prefill** | 预填充 | 把 prompt 逐个读进 KV Cache，不采样 |
+| **Decode** | 解码 | 用 KV Cache 逐个生成新 token，自回归 |
+
+> 更完整的术语表见 [附录 A](./appendix-a-glossary)
+
+---
+
 ## ❓ 常见问题
 
 **Q: 需要什么基础？**
