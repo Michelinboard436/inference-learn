@@ -10,20 +10,20 @@ Build a Transformer inference engine from scratch in pure C — no PyTorch, no A
 [![Language: C](https://img.shields.io/badge/Language-C99-blue.svg)]()
 [![Model: Qwen2.5-0.5B](https://img.shields.io/badge/Model-Qwen2.5--0.5B-green.svg)]()
 [![Lines: ~2700](https://img.shields.io/badge/Code-~2700行_C-orange.svg)]()
-[![Docs: 中文](https://img.shields.io/badge/Docs-中文-red.svg)]()
+[![Docs: 中/EN](https://img.shields.io/badge/Docs-中文/English-red.svg)]()
 
-📖 **[在线文档](https://jackiesre721.github.io/inference-learn/)** ← 从这里开始阅读
-📦 **[源码仓库](https://github.com/jackiesre721/inference-learn)**
+📖 **[在线文档 / Docs](https://jackiesre721.github.io/inference-learn/cn/)** · 🇬🇧 **[English Docs](https://jackiesre721.github.io/inference-learn/en/)** · 📦 **[Source](https://github.com/jackiesre721/inference-learn)**
 
 </div>
 
-> **English**: A minimal LLM inference engine written in pure C (~2700 lines, zero dependencies).
-> Loads Qwen2.5-0.5B weights (safetensors), implements RMSNorm / RoPE / GQA / SwiGLU / KV Cache / BPE from scratch.
-> Numerically verified against PyTorch (error < 0.0002). Full documentation in Chinese (10 chapters + 13 Mermaid diagrams).
+> A minimal LLM inference engine written in pure C (~2700 lines, zero dependencies).
+> Loads Qwen2.5-0B weights (safetensors), implements RMSNorm / RoPE / GQA / SwiGLU / KV Cache / BPE from scratch.
+> Numerically verified against PyTorch (error < 0.0002).
+> Full bilingual documentation: [中文](https://jackiesre721.github.io/inference-learn/cn/) | [English](https://jackiesre721.github.io/inference-learn/en/)
 
 ---
 
-## ✨ 30 秒演示
+## ✨ Demo
 
 ```bash
 $ ./run model.safetensors tokenizer.bin "1+1="
@@ -37,140 +37,129 @@ $ ./run model.safetensors tokenizer.bin "Python is"
 Python is a programming language that is widely used for web development...
 ```
 
-**这不是调 API，是用 ~2700 行纯 C 从零实现的推理引擎**——手写了 RMSNorm、RoPE、GQA、SwiGLU、KV Cache、BPE 分词器，加载真实的 4.94 亿参数大模型，在 CPU 上生成文本。
+**这不是调 API** — This is not an API call. It's a ~2700-line pure C inference engine that hand-writes every operator (RMSNorm, RoPE, GQA, SwiGLU, KV Cache, BPE tokenizer), loads a real 4.94-billion-parameter model, and generates text on CPU.
 
-## 🎯 这是什么
+## 🎯 What is this / 这是什么
 
-一个能加载 [Qwen2.5-0.5B](https://huggingface.co/Qwen/Qwen2.5-0.5B)（0.49B 参数）并生成文本的推理引擎。
+A pure-C inference engine that loads [Qwen2.5-0.5B](https://huggingface.co/Qwen/Qwen2.5-0.5B) (0.49B params) and generates text.
 
-**目标不是性能**（比 vLLM 慢 1000 倍），而是**让你看懂推理引擎的每个零件**：
+**Goal is not performance** (1000× slower than vLLM), but **understanding every component**:
 
-- 权重文件在磁盘上长什么样
-- 一个 token 进来后，24 层 Transformer 内部一步步发生了什么
-- 为什么用 RMSNorm、RoPE、GQA、SwiGLU、KV Cache
-- 模型的"智能"到底藏在 5 亿个数字的哪里
+- How weights are organized on disk / 权重文件在磁盘上长什么样
+- What happens inside 24 Transformer layers when a token enters / 一个 token 进来后发生了什么
+- Why RMSNorm, RoPE, GQA, SwiGLU, KV Cache / 为什么用这些技术
+- Where the model's "intelligence" lives in 500M numbers / 模型的"智能"藏在哪
 
-每个算子都是手写的三重循环，没有黑盒。**前向传播数值和 PyTorch 官方实现对比，误差 < 0.0002**。
+Every operator is a hand-written triple loop, no black boxes. **Forward pass verified against PyTorch, error < 0.0002**.
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
 ```bash
-# 1. 下载模型权重 (~1GB)
+# 1. Download model weights (~1GB)
 ./download.sh
 
-# 2. 导出分词器
+# 2. Export tokenizer
 python3 export_tokenizer.py
 
-# 3. 编译
+# 3. Build
 make
 
-# 4. 生成文本
+# 4. Generate text
 ./run model.safetensors tokenizer.bin "Python is"
 
-# 5. 看引擎内部每一步 (HTML 报告)
+# 5. Visualize internals (HTML report)
 ./run model.safetensors tokenizer.bin "Hello" --report
 open trace_report.html
 ```
 
 <details>
-<summary><b>📋 所有命令</b></summary>
+<summary><b>📋 All commands / 所有命令</b></summary>
 
-| 命令 | 作用 |
-|------|------|
-| `./run model.safetensors tokenizer.bin "你的提示"` | 生成文本 |
-| `./run model.safetensors tokenizer.bin "..." -v` | debug 日志：每层摘要 |
-| `./run model.safetensors tokenizer.bin "..." -vv` | trace 日志：所有中间张量 |
-| `./run model.safetensors tokenizer.bin "..." --report` | 生成 HTML 可视化报告 |
-| `./run model.safetensors tokenizer.bin "..." -t 0.8 -k 40` | 带温度和 top-k 采样 |
-| `./run info model.safetensors` | 查看模型结构和所有张量 |
-| `./run encode tokenizer.bin "Hello world"` | 看 BPE 分词过程 |
-| `./run fwd model.safetensors 198 0` | 单 token 前向（数值验证用） |
+| Command | What it does |
+|---------|-------------|
+| `./run model.safetensors tokenizer.bin "prompt"` | Generate text / 生成文本 |
+| `./run model.safetensors tokenizer.bin "..." -v` | Debug log: per-layer summary |
+| `./run model.safetensors tokenizer.bin "..." -vv` | Trace log: all intermediate tensors |
+| `./run model.safetensors tokenizer.bin "..." --report` | Generate HTML visualization report |
+| `./run model.safetensors tokenizer.bin "..." -t 0.8 -k 40` | Temperature + top-k sampling |
+| `./run info model.safetensors` | Inspect model structure and all tensors |
+| `./run encode tokenizer.bin "Hello world"` | See BPE tokenization process |
+| `./run fwd model.safetensors 198 0` | Single-token forward (numerical verification) |
 
 </details>
 
-## 📂 源码结构
+## 📂 Source Structure
 
 ```
 inference-learn/
-├── run.c              # 入口：生成循环 + 采样 (~500 行)
-├── net.c              # 核心：前向传播全部算子 (~400 行) ← 重点读这个
-├── tokenizer.c        # BPE 分词器 (~500 行)
-├── safetensors.c      # 权重加载：mmap + bf16→fp32 (~300 行)
-├── json.c             # 极简 JSON 解析器 (~280 行)
-├── trace.c            # 分级日志系统 (~210 行)
-├── report.c           # HTML 报告生成 (~150 行)
-├── docs/              # ★ 完整学习文档 (10 章, 中文)
-└── *.py               # 辅助脚本（分词器导出、数值验证）
+├── run.c              # Entry: generation loop + sampling (~500 lines)
+├── net.c              # Core: forward pass, all operators (~400 lines) ← read this first
+├── tokenizer.c        # BPE tokenizer (~500 lines)
+├── safetensors.c      # Weight loading: mmap + bf16→fp32 (~300 lines)
+├── json.c             # Minimal JSON parser (~280 lines)
+├── trace.c            # Tiered logging system (~210 lines)
+├── report.c           # HTML report generator (~150 lines)
+├── docs/              # ★ Full documentation (bilingual: cn/ + en/)
+│   ├── cn/            # 中文文档 (14 files)
+│   └── en/            # English docs (14 files)
+└── *.py               # Helper scripts (tokenizer export, verification)
 ```
 
-## 📖 学习文档
+## 📖 Documentation / 学习文档
 
-完整的中文学习文档在 [`docs/`](./docs/) 目录，**10 章 + 2 附录，6700+ 行，13 个 Mermaid 可视化图**：
+**📖 [中文文档](https://jackiesre721.github.io/inference-learn/cn/)** · **🇬🇧 [English Docs](https://jackiesre721.github.io/inference-learn/en/)**
 
-| 章 | 主题 | 配合源码 |
-|----|------|---------|
-| [1. 基础概念](./docs/01-basics.md) | 张量、维度、0.5B 怎么算 | — |
-| [2. 权重加载](./docs/02-weights.md) | safetensors 格式、mmap、bf16 | `safetensors.c` |
-| [3. JSON 解析](./docs/03-json.md) | 递归下降解析器 | `json.c` |
-| [4. 模型结构](./docs/04-model.md) | Config/Weights/RunState 三大结构体 | `net.h` |
-| [5. 前向传播](./docs/05-forward.md) | **核心**：6 个算子逐个拆解 + 6 张图 | `net.c` |
-| [6. 分词器](./docs/06-tokenizer.md) | BPE、byte-level、pre-tokenize | `tokenizer.c` |
-| [7. 采样生成](./docs/07-sampling.md) | temperature、top-k、prefill/decode | `run.c` |
-| [8. 日志可视化](./docs/08-logging.md) | 分级日志、HTML 报告 | `trace.c` |
-| [9. 调试验证](./docs/09-debugging.md) | 数值验证、ASan、逐层 dump | — |
-| [10. 生态对比](./docs/10-ecosystem.md) | vs llama.cpp / vLLM / SGLang / 长上下文 | — |
+10 chapters + 2 appendices, 13 Mermaid diagrams, bilingual (Chinese + English):
 
-📖 [完整的阅读路径和目录 →](./docs/README.md)
+| Chapter | Topic | Source |
+|---------|-------|--------|
+| [1. Basics](https://jackiesre721.github.io/inference-learn/cn/01-basics) | Tensors, dimensions, how 0.5B is calculated | — |
+| [2. Weights](https://jackiesre721.github.io/inference-learn/cn/02-weights) | safetensors format, mmap, bf16 | `safetensors.c` |
+| [3. JSON Parser](https://jackiesre721.github.io/inference-learn/cn/03-json) | Recursive descent parser | `json.c` |
+| [4. Model Architecture](https://jackiesre721.github.io/inference-learn/cn/04-model) | Config / Weights / RunState structs | `net.h` |
+| [5. Forward Pass ★](https://jackiesre721.github.io/inference-learn/cn/05-forward) | **Core**: all 6 operators + 6 diagrams | `net.c` |
+| [6. Tokenizer](https://jackiesre721.github.io/inference-learn/cn/06-tokenizer) | BPE, byte-level, pre-tokenize | `tokenizer.c` |
+| [7. Sampling](https://jackiesre721.github.io/inference-learn/cn/07-sampling) | temperature, top-k, prefill/decode | `run.c` |
+| [8. Logging](https://jackiesre721.github.io/inference-learn/cn/08-logging) | Tiered log, HTML report | `trace.c` |
+| [9. Debugging](https://jackiesre721.github.io/inference-learn/cn/09-debugging) | Numerical verification, ASan | — |
+| [10. Ecosystem](https://jackiesre721.github.io/inference-learn/cn/10-ecosystem) | vs llama.cpp / vLLM / SGLang | — |
 
-## 🧠 你会学到什么
+## 🧠 What you'll learn / 你会学到什么
 
-读完这个项目，你会理解：
+- ✅ How 500M weights are organized, stored, and loaded
+- ✅ What happens step-by-step inside 24 Transformer layers
+- ✅ Why RMSNorm (without it, values explode), RoPE (rotary position), GQA (7× less memory)
+- ✅ How KV Cache reduces generation complexity from O(N²) to O(N)
+- ✅ How BPE splits text into tokens, how sampling picks words
+- ✅ How your engine compares to vLLM — where, how much, why
+- ✅ Why LLMs use GPUs not CPUs (the 100-1000× gap explained)
 
-- ✅ 5 亿个权重数字是怎么组织、存储、加载的
-- ✅ 输入一句话后，模型内部一步步发生了什么计算
-- ✅ 为什么用 RMSNorm（不归一化会爆炸）、RoPE（旋转编码位置）、GQA（省 7 倍内存）
-- ✅ KV Cache 怎么把生成复杂度从 O(N²) 降到 O(N)
-- ✅ BPE 怎么把文字切成 token、采样怎么从概率分布选词
-- ✅ 你的手写引擎和 vLLM 差在哪、差多少、为什么
-- ✅ 为什么大模型用 GPU 不用 CPU（100-1000 倍差距的根源）
+**Out of scope**: training, backpropagation, GPU programming, distributed deployment.
 
-**不会**教你（超出范围）：训练、反向传播、GPU 编程、分布式部署。
+## 📊 Performance
 
-## 📊 性能
+| Metric | Value | vs vLLM |
+|--------|-------|---------|
+| Generation speed | ~3 tokens/s | vLLM ~3000 tok/s (1000× slower) |
+| Memory | ~2 GB | — |
+| Model file | 988 MB (bf16) | — |
+| Numerical accuracy | error < 0.0002 vs PyTorch | — |
+| Code size | ~2700 lines C, 0 deps | vLLM ~200K lines, 30+ deps |
 
-| 指标 | 值 | 对比 vLLM |
-|------|-----|-----------|
-| 生成速度 | ~3 tokens/s | vLLM ~3000 tok/s（慢 1000 倍） |
-| 内存占用 | ~2 GB | — |
-| 模型文件 | 988 MB（bf16） | — |
-| 数值精度 | 与 PyTorch 误差 < 0.0002 | — |
-| 代码总量 | ~2700 行 C + 0 依赖 | vLLM ~20 万行 + 30 依赖 |
+Slow because: pure fp32 + CPU serial + no quantization. This is by **design** — simplicity over performance. See [Chapter 10](https://jackiesre721.github.io/inference-learn/cn/10-ecosystem).
 
-慢是因为纯 fp32 + CPU 串行 + 无量化。这是**设计目标**——简洁优先，不是性能优先。详见 [第 10 章](./docs/10-ecosystem.md)。
+## ✅ Verified
 
-## 🔧 技术栈
+- [x] Forward pass numerically aligned with PyTorch (error < 0.0002)
+- [x] Greedy generation matches HF `model.generate()` token-by-token
+- [x] BPE encoding matches HF tokenizer (English)
+- [x] ASan/UBSan clean
 
-| 项目 | 选择 |
-|------|------|
-| 语言 | C99，只依赖 libc |
-| 模型 | Qwen2.5-0.5B（Llama 风格 + QKV bias + GQA） |
-| 权重格式 | 直接读 safetensors（mmap + bf16→fp32） |
-| 分词器 | C 手写 BPE（byte-level） |
-| 构建 | `make`（单条 gcc 命令） |
-| 依赖 | **0**（只要 libc） |
+## 🙏 Acknowledgments
 
-## ✅ 已验证
-
-- [x] 前向传播数值和 PyTorch 对齐（误差 < 0.0002）
-- [x] 贪心生成和 HF `model.generate()` 逐 token 一致
-- [x] BPE 编码和 HF tokenizer 一致（英文场景）
-- [x] ASan/UBSan 全部通过
-
-## 🙏 致谢
-
-- [Andrej Karpathy / llama2.c](https://github.com/karpathy/llama2.c) — "最小可学习推理引擎"的理念
-- [Qwen 团队 / Qwen2.5-0.5B](https://huggingface.co/Qwen/Qwen2.5-0.5B) — 开放的模型权重
-- [HuggingFace / safetensors](https://github.com/huggingface/safetensors) — 简洁的权重格式
+- [Andrej Karpathy / llama2.c](https://github.com/karpathy/llama2.c) — "minimal learnable inference engine" philosophy
+- [Qwen Team / Qwen2.5-0.5B](https://huggingface.co/Qwen/Qwen2.5-0.5B) — open model weights
+- [HuggingFace / safetensors](https://github.com/huggingface/safetensors) — clean weight format
 
 ## 📄 License
 
@@ -179,10 +168,10 @@ MIT
 ---
 
 <details>
-<summary><b>🏷️ Keywords</b>（帮助 GitHub 搜索检索）</summary>
+<summary><b>🏷️ Keywords</b></summary>
 
-**English**: llm inference engine | transformer from scratch | pure c | qwen2.5 | gqa grouped query attention | rope rotary position embedding | rmsnorm | swiglu | kv cache | bpe tokenizer | safetensors | deep learning | language model | chatgpt architecture | nano inference | learn llm
+**English**: llm inference engine | transformer from scratch | pure c | qwen2.5 | gqa grouped query attention | rope rotary position embedding | rmsnorm | swiglu | kv cache | bpe tokenizer | safetensors | deep learning | language model | nano inference | learn llm | c99
 
-**中文**: 大模型推理引擎 | 从零实现 transformer | 纯 c 大模型 | qwen2.5 部署 | gqa 分组注意力 | rope 旋转位置编码 | rmsnorm 归一化 | swiglu 激活函数 | kv cache 缓存 | bpe 分词器 | safetensors 加载 | 深度学习 | 语言模型 | chatgpt 原理 | llm 学习 | 推理引擎原理
+**中文**: 大模型推理引擎 | 从零实现 transformer | 纯 c 大模型 | qwen2.5 | gqa 分组注意力 | rope 旋转位置编码 | rmsnorm | swiglu | kv cache | bpe 分词器 | safetensors | 深度学习 | 语言模型 | llm 学习 | 推理引擎原理
 
 </details>
