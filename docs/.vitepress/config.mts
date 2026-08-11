@@ -93,8 +93,8 @@ export default defineConfig({
 
     // 顶部导航栏
     nav: [
-      { text: '📖 文档', link: '/README' },
-      { text: '🏠 首页', link: 'https://github.com/jackiesre721/inference-learn' },
+      { text: '📖 目录', link: '/README' },
+      { text: '🏠 首页', link: '/' },
       { text: '💻 源码', link: 'https://github.com/jackiesre721/inference-learn' }
     ],
 

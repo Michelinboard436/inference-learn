@@ -11,7 +11,7 @@ hero:
   actions:
     - theme: brand
       text: 📖 开始阅读
-      link: /01-basics
+      link: /README
     - theme: alt
       text: 💻 查看源码
       link: https://github.com/jackiesre721/inference-learn
