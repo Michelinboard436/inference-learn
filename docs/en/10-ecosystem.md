@@ -169,10 +169,10 @@ DeepSeek-V2       RMSNorm   RoPE (decoupled)      MLA (new structure)   special 
 
 Each model changes something:
 
-- **Qwen** added QKV bias (Llama doesn't have it) — that's why our `net.c` passes `bq/bk/bv`
-- **Mistral** added sliding-window attention (only attends to recent tokens, saves memory)
-- **DeepSeek-V2** replaced GQA with MLA and swapped MLP for MoE (multiple expert networks)
-- **Llama-3** bumped RoPE's theta from 10k to 500k (to support longer context)
+- Qwen** added QKV bias (Llama doesn't have it) — that's why our `net.c` passes `bq/bk/bv`
+- Mistral** added sliding-window attention (only attends to recent tokens, saves memory)
+- DeepSeek-V2** replaced GQA with MLA and swapped MLP for MoE (multiple expert networks)
+- Llama-3** bumped RoPE's theta from 10k to 500k (to support longer context)
 
 ### What These Differences Mean for the Engine
 
@@ -977,16 +977,16 @@ Both have PagedAttention, Continuous Batching, quantization, multi-card, HTTP AP
 
 **Where SGLang is stronger**:
 
-- **RadixAttention**: caches prefixes with a radix tree, can cache more combinations than vLLM's hash table → 2-5x faster in multi-turn dialogue and few-shot scenarios
-- **Structured output**: native integration + compile-time optimization → 10x+ faster when forcing JSON output
-- **Programmatic generation (DSL)**: unique to SGLang, lets you describe the generation flow in Python code (branching generation, picking the best)
-- **More aggressive scheduling**: more aggressive kernel fusion → 10-30% higher overall throughput
+- RadixAttention**: caches prefixes with a radix tree, can cache more combinations than vLLM's hash table → 2-5x faster in multi-turn dialogue and few-shot scenarios
+- Structured output**: native integration + compile-time optimization → 10x+ faster when forcing JSON output
+- Programmatic generation (DSL)**: unique to SGLang, lets you describe the generation flow in Python code (branching generation, picking the best)
+- More aggressive scheduling**: more aggressive kernel fusion → 10-30% higher overall throughput
 
 **Where vLLM is stronger**:
 
-- **More mature ecosystem**: larger community, more docs, more plugins
-- **Broader hardware support**: NVIDIA / AMD / Intel / TPU
-- **Stability**: proven at large-scale production
+- More mature ecosystem**: larger community, more docs, more plugins
+- Broader hardware support**: NVIDIA / AMD / Intel / TPU
+- Stability**: proven at large-scale production
 
 ### But These Aren't Defects — They're Different Design Goals
 
@@ -1041,9 +1041,9 @@ Gemini 1.5         ? + memory compression  1M  ✓ via memory compression
 **If the model's position encoding doesn't support 200K, hardware alone won't help** — the model literally "can't see clearly" the difference between the 150,000th token and the 150,001st.
 
 Additional techniques for long-context models:
-- **YaRN / RoPE Scaling**: interpolate over distant positions so the original RoPE can extrapolate further
-- **Memory compression** (Gemini): compress early tokens into a summary rather than truly storing a million KV entries
-- **Sliding window** (Mistral): precisely retain only the most recent N tokens, fuzz the rest
+- YaRN / RoPE Scaling**: interpolate over distant positions so the original RoPE can extrapolate further
+- Memory compression** (Gemini): compress early tokens into a summary rather than truly storing a million KV entries
+- Sliding window** (Mistral): precisely retain only the most recent N tokens, fuzz the rest
 
 ### Hardware Side: Can the KV Cache Fit
 
@@ -1142,8 +1142,8 @@ Attention(Q,K,V) = softmax(QKᵀ/√d)V
 
 vLLM's real innovations are at the scheduling layer:
 
-- **PagedAttention** pages the KV Cache, taking memory utilization from 50% to 95%
-- **Continuous Batching** packs multiple requests into one batch, taking GPU utilization from 30% to 95%
+- PagedAttention** pages the KV Cache, taking memory utilization from 50% to 95%
+- Continuous Batching** packs multiple requests into one batch, taking GPU utilization from 30% to 95%
 
 Neither has anything to do with "computing faster" — same GPU, same operators, just letting **multiple requests share compute**. This is an engineering innovation, not a mathematical one.
 

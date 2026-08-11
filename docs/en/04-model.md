@@ -10,9 +10,9 @@
 
 `net.h` is the "skeleton" of the entire inference engine — it defines the three core data structures:
 
-- **Config**: what the model looks like (all the dimension parameters)
-- **TransformerWeights**: what weights there are (all the learnable parameters)
-- **RunState**: what memory is needed for computation (the working buffers)
+- Config**: what the model looks like (all the dimension parameters)
+- TransformerWeights**: what weights there are (all the learnable parameters)
+- RunState**: what memory is needed for computation (the working buffers)
 
 But it's full of jargon: residual stream, projection, GQA, RoPE, SwiGLU, KV Cache...
 
@@ -136,8 +136,8 @@ typedef struct {
 
 **Why Weights and RunState are kept separate**:
 
-- **Weights are read-only**: model parameters, never change throughout generation
-- **RunState is read-write**: overwritten on every forward step
+- Weights are read-only**: model parameters, never change throughout generation
+- RunState is read-write**: overwritten on every forward step
 
 Keeping them separate is cleaner and also friendlier to multithreading (one copy of weights shared by many threads, each with its own independent RunState).
 
@@ -604,7 +604,7 @@ the attention score of two tokens = the difference of their rotation angles = re
 **What rope_theta does**: the base frequency. The larger it is, the farther apart positions it can encode (supports longer context).
 
 - GPT-2: theta=10000 (context 1024)
-- **Qwen2.5: theta=1000000** (context 32768)
+- Qwen2.5: theta=1000000** (context 32768)
 
 **In net.h**:
 

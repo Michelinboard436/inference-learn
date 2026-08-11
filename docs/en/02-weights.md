@@ -57,8 +57,8 @@ Before diving into the code, let's clarify two low-level concepts — they expla
 
 ### mmap (memory-mapped file)
 
-- **Plain English**: it "maps" a disk file into a memory address space; accessing memory is then equivalent to reading the file, with no need for `fread`.
-- **Why use it**: when reading 1GB of weights, `fread` makes many syscalls and needs an extra buffer; `mmap` lets the OS page the file into memory on demand, near-instantly, with a memory footprint that grows as needed.
+- Plain English**: it "maps" a disk file into a memory address space; accessing memory is then equivalent to reading the file, with no need for `fread`.
+- Why use it**: when reading 1GB of weights, `fread` makes many syscalls and needs an extra buffer; `mmap` lets the OS page the file into memory on demand, near-instantly, with a memory footprint that grows as needed.
 
 ```c
 void *map = mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0);
@@ -75,7 +75,7 @@ What the parameters mean:
 
 ### little-endian
 
-- **Plain English**: the order in which multi-byte data is laid out in memory. "Little-endian" = the low-order byte is stored at the low address.
+- Plain English**: the order in which multi-byte data is laid out in memory. "Little-endian" = the low-order byte is stored at the low address.
 
 ```
 The little-endian storage of the number 0x12345678 (4 bytes):
@@ -135,7 +135,7 @@ memcpy(&out[i], &bits, 4);           // bit-reinterpret as float
 
 ### strict aliasing
 
-- **Plain English**: the C compiler considers it "undefined behavior" for a `float*` and a `uint32_t*` to point at the same memory. So you can't do `*(float*)&bits` for a type conversion; you have to use `memcpy` (which the compiler optimizes to zero overhead).
+- Plain English**: the C compiler considers it "undefined behavior" for a `float*` and a `uint32_t*` to point at the same memory. So you can't do `*(float*)&bits` for a type conversion; you have to use `memcpy` (which the compiler optimizes to zero overhead).
 
 The comment at the top of `safetensors.c` specifically emphasizes this rule — why you must use `memcpy(&f, &fp32_bits, 4)` instead of dereferencing directly. This is a classic C pitfall; violating strict aliasing under `-O2` optimization can cause bizarre bugs.
 

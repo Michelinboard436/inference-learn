@@ -145,9 +145,9 @@ static int stderr_is_tty(void) {
 
 **术语**：
 
-- **TTY** = TeleTYpewriter（终端的古老叫法，沿用至今）。现在泛指交互式终端。
-- **isatty** = "is a tty?"，判断文件描述符是不是终端。返回 1 是终端，0 是管道/文件。
-- **fileno** = 从 `FILE*`（如 `stderr`）拿到底层的整数文件描述符（如 2）。
+- TTY** = TeleTYpewriter（终端的古老叫法，沿用至今）。现在泛指交互式终端。
+- isatty** = "is a tty?"，判断文件描述符是不是终端。返回 1 是终端，0 是管道/文件。
+- fileno** = 从 `FILE*`（如 `stderr`）拿到底层的整数文件描述符（如 2）。
 
 缓存 `g_stderr_is_tty` 是因为 `isatty` 要做系统调用，频繁调用有开销。stderr 是不是终端在一次运行里不会变，所以查一次就够了。
 
@@ -350,11 +350,11 @@ static const char *CSS =
 
 报告特性：
 
-- **深色主题**（Catppuccin Mocha 配色，护眼）
-- **等宽字体**（`SF Mono` / Menlo / Consolas，对齐整齐）
-- **24 层可折叠**（用 HTML `<details>` 标签，点击展开/收起）
-- **按类别着色**（CSS class 和终端颜色一一对应）
-- **自包含**（CSS 全部内联，不依赖外部文件，单 HTML 就能打开）
+- 深色主题**（Catppuccin Mocha 配色，护眼）
+- 等宽字体**（`SF Mono` / Menlo / Consolas，对齐整齐）
+- 24 层可折叠**（用 HTML `<details>` 标签，点击展开/收起）
+- 按类别着色**（CSS class 和终端颜色一一对应）
+- 自包含**（CSS 全部内联，不依赖外部文件，单 HTML 就能打开）
 
 ### 折叠逻辑
 

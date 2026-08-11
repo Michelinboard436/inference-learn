@@ -18,13 +18,13 @@ The model only understands numbers (token ids), not characters. The tokenizer is
 
 Order of this chapter:
 
-- **6.1** Why tokenization is needed (motivation)
-- **6.2** The BPE algorithm (core: repeatedly merge the most frequent pair)
-- **6.3** Byte-level mapping (256 bytes → printable unicode)
-- **6.4** Pre-tokenization (split before BPE)
-- **6.5** FNV-1a hash table (how a 150k-word vocabulary is queried quickly)
-- **6.6** BOS / EOS / PAD (special tokens)
-- **6.7** The Tokenizer struct + the tokenizer.bin file format
+- Why tokenization is needed (motivation)
+- The BPE algorithm (core: repeatedly merge the most frequent pair)
+- Byte-level mapping (256 bytes → printable unicode)
+- Pre-tokenization (split before BPE)
+- FNV-1a hash table (how a 150k-word vocabulary is queried quickly)
+- BOS / EOS / PAD (special tokens)
+- The Tokenizer struct + the tokenizer.bin file format
 
 ---
 

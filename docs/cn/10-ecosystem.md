@@ -167,10 +167,10 @@ DeepSeek-V2       RMSNorm   RoPE(解耦式)  MLA(新结构)      特殊        M
 
 每个模型都改了点东西：
 
-- **Qwen** 加了 QKV bias（Llama 没有）——这就是为什么我们的 `net.c` 要传 `bq/bk/bv`
-- **Mistral** 加了滑动窗口注意力（只看最近的 token，省内存）
-- **DeepSeek-V2** 用 MLA 替代了 GQA，MLP 换成了 MoE（多个专家网络）
-- **Llama-3** 把 RoPE 的 theta 从 1 万调到 50 万（支持更长上下文）
+- Qwen** 加了 QKV bias（Llama 没有）——这就是为什么我们的 `net.c` 要传 `bq/bk/bv`
+- Mistral** 加了滑动窗口注意力（只看最近的 token，省内存）
+- DeepSeek-V2** 用 MLA 替代了 GQA，MLP 换成了 MoE（多个专家网络）
+- Llama-3** 把 RoPE 的 theta 从 1 万调到 50 万（支持更长上下文）
 
 ### 这些差异对引擎意味着什么
 
@@ -974,16 +974,16 @@ SGLang            A100 × 1      ~150 tok/s   ~4000 tok/s ★
 
 **SGLang 更强的地方**：
 
-- **RadixAttention**：用基数树缓存前缀，比 vLLM 的哈希表能缓存更多组合 → 多轮对话、Few-shot 场景快 2-5 倍
-- **结构化输出**：原生集成 + 编译期优化 → 强制输出 JSON 时快 10 倍+
-- **程序化生成（DSL）**：SGLang 独有，能用 Python 代码描述生成流程（分支生成、挑最优）
-- **调度更激进**：kernel 融合更激进 → 综合吞吐量高 10-30%
+- RadixAttention**：用基数树缓存前缀，比 vLLM 的哈希表能缓存更多组合 → 多轮对话、Few-shot 场景快 2-5 倍
+- 结构化输出**：原生集成 + 编译期优化 → 强制输出 JSON 时快 10 倍+
+- 程序化生成（DSL）**：SGLang 独有，能用 Python 代码描述生成流程（分支生成、挑最优）
+- 调度更激进**：kernel 融合更激进 → 综合吞吐量高 10-30%
 
 **vLLM 更强的地方**：
 
-- **生态更成熟**：社区更大、文档更多、插件更多
-- **硬件支持更广**：NVIDIA / AMD / Intel / TPU
-- **稳定性**：经过大规模生产验证
+- 生态更成熟**：社区更大、文档更多、插件更多
+- 硬件支持更广**：NVIDIA / AMD / Intel / TPU
+- 稳定性**：经过大规模生产验证
 
 ### 但这不是缺陷——是设计目标不同
 
@@ -1037,9 +1037,9 @@ Gemini 1.5         ? + 压缩记忆  1M           ✓ 靠记忆压缩
 **如果模型的位置编码不支持 200K，光给硬件也没用**——模型根本"看不清"第 15 万个位置的 token 和第 15 万零 1 个有什么区别。
 
 长上下文模型的额外技术：
-- **YaRN / RoPE Scaling**：对远距离位置做插值，让原始 RoPE 能外推到更远
-- **记忆压缩**（Gemini）：把早期 token 压缩成摘要，不是真存 100 万个 KV
-- **滑动窗口**（Mistral）：只精确保留最近 N 个 token，远处的模糊处理
+- YaRN / RoPE Scaling**：对远距离位置做插值，让原始 RoPE 能外推到更远
+- 记忆压缩**（Gemini）：把早期 token 压缩成摘要，不是真存 100 万个 KV
+- 滑动窗口**（Mistral）：只精确保留最近 N 个 token，远处的模糊处理
 
 ### 硬件侧：KV Cache 装得下吗
 
@@ -1138,8 +1138,8 @@ Attention(Q,K,V) = softmax(QKᵀ/√d)V
 
 vLLM 的真正创新在调度层：
 
-- **PagedAttention** 把 KV Cache 分页管理，内存利用率从 50% 提到 95%
-- **Continuous Batching** 把多个请求拼成一个 batch，GPU 利用率从 30% 提到 95%
+- PagedAttention** 把 KV Cache 分页管理，内存利用率从 50% 提到 95%
+- Continuous Batching** 把多个请求拼成一个 batch，GPU 利用率从 30% 提到 95%
 
 这两件事和「算得快」无关——同样的 GPU、同样的算子，只是让**多个请求共享算力**。这是工程上的创新，不是数学上的创新。
 

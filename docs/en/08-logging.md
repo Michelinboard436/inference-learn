@@ -147,9 +147,9 @@ static int stderr_is_tty(void) {
 
 **Terminology**:
 
-- **TTY** = TeleTYpewriter (an old name for a terminal, still in use). Now broadly means an interactive terminal.
-- **isatty** = "is a tty?", checks whether a file descriptor is a terminal. Returns 1 for a terminal, 0 for a pipe/file.
-- **fileno** = extracts the underlying integer file descriptor (e.g. 2) from a `FILE*` (such as `stderr`).
+- TTY** = TeleTYpewriter (an old name for a terminal, still in use). Now broadly means an interactive terminal.
+- isatty** = "is a tty?", checks whether a file descriptor is a terminal. Returns 1 for a terminal, 0 for a pipe/file.
+- fileno** = extracts the underlying integer file descriptor (e.g. 2) from a `FILE*` (such as `stderr`).
 
 `g_stderr_is_tty` is cached because `isatty` performs a system call, and frequent calls have overhead. Whether stderr is a terminal won't change during a single run, so checking once is enough.
 
@@ -352,11 +352,11 @@ static const char *CSS =
 
 Report features:
 
-- **Dark theme** (Catppuccin Mocha palette, easy on the eyes)
-- **Monospace font** (`SF Mono` / Menlo / Consolas, neat alignment)
-- **24 collapsible layers** (using the HTML `<details>` tag, click to expand/collapse)
-- **Colored by category** (CSS classes correspond one-to-one with terminal colors)
-- **Self-contained** (all CSS inlined, no external files, a single HTML is enough to open)
+- Dark theme** (Catppuccin Mocha palette, easy on the eyes)
+- Monospace font** (`SF Mono` / Menlo / Consolas, neat alignment)
+- 24 collapsible layers** (using the HTML `<details>` tag, click to expand/collapse)
+- Colored by category** (CSS classes correspond one-to-one with terminal colors)
+- Self-contained** (all CSS inlined, no external files, a single HTML is enough to open)
 
 ### Collapsing Logic
 

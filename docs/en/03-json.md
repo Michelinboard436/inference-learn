@@ -43,8 +43,8 @@ Parsing it needs a JSON parser. But we don't depend on any external library (thi
 
 This is the core idea of the entire parser.
 
-- **Plain English**: JSON is a nested structure (objects inside arrays inside objects...). Recursive descent = when you hit `{` you call `parse_object()`; when you hit `[` you call `parse_array()`; the functions call themselves.
-- **Why it's needed**: a nested structure can't be handled by a simple loop; recursion fits naturally — each level deeper means one more function call, and the stack automatically records "which level am I on."
+- Plain English**: JSON is a nested structure (objects inside arrays inside objects...). Recursive descent = when you hit `{` you call `parse_object()`; when you hit `[` you call `parse_array()`; the functions call themselves.
+- Why it's needed**: a nested structure can't be handled by a simple loop; recursion fits naturally — each level deeper means one more function call, and the stack automatically records "which level am I on."
 
 The whole parser's entry point is `parse_value`, which branches based on the current character:
 

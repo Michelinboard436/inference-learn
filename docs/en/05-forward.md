@@ -14,9 +14,9 @@
 
 How this chapter is organized:
 
-- **5.0** First, use real data to see exactly "what happens when a token comes in."
-- **5.1** A complete flow diagram of a single Transformer layer.
-- **5.2–5.9** Dissect each operator one by one, with principle + code + real numbers.
+- First, use real data to see exactly "what happens when a token comes in."
+- A complete flow diagram of a single Transformer layer.
+- 5.2–5.9** Dissect each operator one by one, with principle + code + real numbers.
 
 ---
 
@@ -393,8 +393,8 @@ static void matmul(float *out, const float *W, const float *x,
 
 **Terminology**:
 
-- **Row-major**: the matrix is stored row by row; `W[i*n+j]` is row i, column j. C arrays are row-major by default.
-- **Projection**: the operation `y = Wx + b` is called a "linear projection" — multiplying a vector by a matrix to transform it into another space.
+- Row-major**: the matrix is stored row by row; `W[i*n+j]` is row i, column j. C arrays are row-major by default.
+- Projection**: the operation `y = Wx + b` is called a "linear projection" — multiplying a vector by a matrix to transform it into another space.
 
 > ⚠️ **Pitfall during development**: for `matmul(out, W, x, bias, n, d)`, `n` is the input dimension and `d` is the output dimension.
 > Passing them swapped causes an out-of-bounds write. During this project's development, the k_proj arguments were once swapped — ASan caught it.
@@ -591,9 +591,9 @@ cat's input vector
 
 **Why project one input into three vectors?** Because they play different roles:
 
-- **Q (Query)** = "what kind of words I want to find" — use it to match against others
-- **K (Key)** = "what kind of word I am" — others use their Q to match against it
-- **V (Value)** = "if you pick me, what information you get"
+- Q (Query)** = "what kind of words I want to find" — use it to match against others
+- K (Key)** = "what kind of word I am" — others use their Q to match against it
+- V (Value)** = "if you pick me, what information you get"
 
 **Life analogy — matchmaking**:
 

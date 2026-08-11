@@ -8,9 +8,9 @@
 
 `net.h` 是整个推理引擎的「骨架」——它定义了三大数据结构：
 
-- **Config**：模型长什么样（所有维度参数）
-- **TransformerWeights**：权重有哪些（全部可学习参数）
-- **RunState**：计算时需要什么内存（工作缓冲区）
+- Config**：模型长什么样（所有维度参数）
+- TransformerWeights**：权重有哪些（全部可学习参数）
+- RunState**：计算时需要什么内存（工作缓冲区）
 
 但里面全是术语：残差流、投影、GQA、RoPE、SwiGLU、KV Cache……
 
@@ -135,8 +135,8 @@ typedef struct {
 
 **为什么 Weights 和 RunState 分开**：
 
-- **Weights 只读**：模型参数，整个生成过程都不变
-- **RunState 读写**：每个 forward 步骤都被覆盖
+- Weights 只读**：模型参数，整个生成过程都不变
+- RunState 读写**：每个 forward 步骤都被覆盖
 
 分开管理更清晰，也方便多线程（一份权重多个线程复用，各自独立的 RunState）。
 
@@ -606,7 +606,7 @@ RoPE 通过给每个位置旋转不同角度，让注意力能感知「相隔多
 **rope_theta 的作用**：基频。越大，能编码的位置越远（支持更长上下文）。
 
 - GPT-2: theta=10000（上下文 1024）
-- **Qwen2.5: theta=1000000**（上下文 32768）
+- Qwen2.5: theta=1000000**（上下文 32768）
 
 **在 net.h**：
 

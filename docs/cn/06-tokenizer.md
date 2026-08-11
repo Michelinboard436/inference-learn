@@ -16,13 +16,13 @@
 
 本章展开顺序：
 
-- **6.1** 为什么需要分词（动机）
-- **6.2** BPE 算法（核心：反复合并最高频对）
-- **6.3** Byte-level 映射（256 个字节 → 可打印 unicode）
-- **6.4** Pre-tokenization（BPE 前先切分）
-- **6.5** 哈希表 FNV-1a（15 万词表怎么快速查）
-- **6.6** BOS / EOS / PAD（特殊 token）
-- **6.7** Tokenizer 结构体 + tokenizer.bin 文件格式
+- 为什么需要分词（动机）
+- BPE 算法（核心：反复合并最高频对）
+- Byte-level 映射（256 个字节 → 可打印 unicode）
+- Pre-tokenization（BPE 前先切分）
+- 哈希表 FNV-1a（15 万词表怎么快速查）
+- BOS / EOS / PAD（特殊 token）
+- Tokenizer 结构体 + tokenizer.bin 文件格式
 
 ---
 
