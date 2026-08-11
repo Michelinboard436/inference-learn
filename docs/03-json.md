@@ -10,7 +10,7 @@
 
 ---
 
-## 3.1 为什么要自己写 JSON 解析器
+## 为什么要自己写 JSON 解析器
 
 safetensors 的 header 是一个 JSON 对象，长这样（简化）：
 
@@ -37,7 +37,7 @@ safetensors 的 header 是一个 JSON 对象，长这样（简化）：
 
 > 📍 **在哪**：`json.h` 顶部注释明确写了"目标：刚好够解析 safetensors 的 header。不追求完整 RFC 兼容"。
 
-## 3.2 递归下降解析（Recursive Descent）
+## 递归下降解析（Recursive Descent）
 
 这是整个解析器的核心思想。
 
@@ -157,7 +157,7 @@ static char *parse_string_raw(Parser *ps) {
 
 > 📍 **在哪**：`json.c` 的 `parse_string_raw()`，两遍扫描的逻辑都在里面。
 
-## 3.3 JsonValue 树结构
+## JsonValue 树结构
 
 解析完之后，整段 JSON 文本变成内存里的一棵树，每个节点是一个 `JsonValue`：
 
@@ -245,7 +245,7 @@ JsonValue *json_object_get(JsonValue *obj, const char *key) {
 
 对 safetensors header 这种几十个字段的小对象，线性查找完全够快，不需要哈希表。
 
-## 3.4 在 safetensors 里怎么用
+## 在 safetensors 里怎么用
 
 第二章的 `safetensors_open()` 会在打开文件时调用一次 `json_parse`，把 header 文本解析成树，缓存到 `st->header`：
 
@@ -267,7 +267,7 @@ unsigned long off1 = (unsigned long)json_array_get(doff, 1)->number;
 
 这就是 `json.c` 存在的全部意义——给 `safetensors.c` 提供"按名查张量元信息"的能力。
 
-## 3.5 内存管理
+## 内存管理
 
 所有节点都用 `malloc`/`calloc` 分配，构成一棵树。`json_free` 递归释放整棵树：
 
@@ -293,7 +293,7 @@ void json_free(JsonValue *v) {
 
 > 📍 **在哪**：`json.c` 的 `json_free()`，被 `safetensors_close()` 调用，在关闭文件时把 header 树整个释放掉。
 
-## 3.6 错误处理
+## 错误处理
 
 解析器的错误处理很朴素：`Parser` 里有个 `error` 标志，任何子解析器发现不对劲（比如对象里 key 后面不是 `:`，或者数字 `strtod` 解析失败）就把 `error` 置 1，返回 `NULL`。上层 `parse_value` 拿到 `NULL` 就一路返回 `NULL`，最终 `json_parse` 发现 `error` 就丢弃半成品、返回 `NULL`。
 

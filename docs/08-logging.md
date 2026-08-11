@@ -12,17 +12,17 @@
 
 ## 目录
 
-- [8.1 分级日志：info / debug / trace](#81-分级日志info--debug--trace)
-- [8.2 stderr vs stdout：日志和生成分开](#82-stderr-vs-stdout日志和生成分开)
-- [8.3 TTY 检测与 ANSI 颜色](#83-tty-检测与-ansi-颜色)
-- [8.4 向量统计：范数、激活率](#84-向量统计范数激活率)
-- [8.5 HTML 报告](#85-html-报告)
-- [8.6 可变参数 va_list](#86-可变参数-va_list)
-- [8.7 一句话总结](#87-一句话总结)
+- [分级日志：info / debug / trace](#分级日志info--debug--trace)
+- [stderr vs stdout：日志和生成分开](#stderr-vs-stdout日志和生成分开)
+- [TTY 检测与 ANSI 颜色](#tty-检测与-ansi-颜色)
+- [向量统计：范数、激活率](#向量统计范数激活率)
+- [HTML 报告](#html-报告)
+- [可变参数 va_list](#可变参数-va_list)
+- [一句话总结](#一句话总结)
 
 ---
 
-## 8.1 分级日志：info / debug / trace
+## 分级日志：info / debug / trace
 
 日志分四级，数值越大越详细：
 
@@ -86,7 +86,7 @@ void log_printf(LogLevel level, const char *fmt, ...) {
 
 ---
 
-## 8.2 stderr vs stdout：日志和生成分开
+## stderr vs stdout：日志和生成分开
 
 **这是整个日志系统最重要的设计决定**：日志走 stderr，生成文本走 stdout。
 
@@ -127,7 +127,7 @@ fwrite(buf, 1, blen, stdout);
 
 ---
 
-## 8.3 TTY 检测与 ANSI 颜色
+## TTY 检测与 ANSI 颜色
 
 ### TTY 检测
 
@@ -234,7 +234,7 @@ void log_line(LogLevel level, LogCategory cat, int indent, const char *fmt, ...)
 
 ---
 
-## 8.4 向量统计：范数、激活率
+## 向量统计：范数、激活率
 
 光 dump 原始数字没用——一个 896 维向量打印出来是天书。日志系统提供几个**摘要函数**，把向量压缩成一两个有意义的数字。
 
@@ -314,7 +314,7 @@ void log_vec(LogLevel level, const char *name, const float *v, int n, int k);
 
 ---
 
-## 8.5 HTML 报告
+## HTML 报告
 
 终端日志滚得快，看不清。`report.c` 把同一批日志渲染成一个**自包含的 HTML 文件**，可以慢慢看、可以分享。
 
@@ -424,7 +424,7 @@ static void trace_append(LogLevel level, LogCategory cat, int indent,
 
 ---
 
-## 8.6 可变参数 va_list
+## 可变参数 va_list
 
 `LOGI("a=%d b=%f", a, b)` 这种「参数数量可变」的函数，靠 C 的 `va_list` 机制实现。
 
@@ -481,7 +481,7 @@ buf = "a=42" → 写到 stderr + 收集到内存
 
 ---
 
-## 8.7 一句话总结
+## 一句话总结
 
 **日志系统 = 分级（info/debug/trace）+ 分流（stderr 日志 / stdout 生成）+ 摘要（范数/激活率把向量压成数字）+ 可视化（HTML 报告）**。
 四件法宝配合，让一个 0.5B 模型的内部计算从黑盒变成可观测的过程——这是第 9 章调试方法论能成立的前提。

@@ -10,18 +10,18 @@
 
 ## 目录
 
-- [7.1 生成循环：prefill + decode 两阶段](#71-生成循环prefill--decode-两阶段)
-- [7.2 为什么必须分两阶段](#72-为什么必须分两阶段)
-- [7.3 prefill 和 decode 其实干的是同一件事](#73-prefill-和-decode-其实干的是同一件事)
-- [7.4 为什么 prefill 计算密集、decode 内存密集](#74-为什么-prefill-计算密集decode-内存密集)
-- [7.5 采样策略全景](#75-采样策略全景)
-- [7.6 PRNG：xorshift128](#76-prngxorshift128)
-- [7.7 命令行参数](#77-命令行参数)
-- [7.8 一句话总结](#78-一句话总结)
+- [生成循环：prefill + decode 两阶段](#生成循环prefill--decode-两阶段)
+- [为什么必须分两阶段](#为什么必须分两阶段)
+- [prefill 和 decode 其实干的是同一件事](#prefill-和-decode-其实干的是同一件事)
+- [为什么 prefill 计算密集、decode 内存密集](#为什么-prefill-计算密集decode-内存密集)
+- [采样策略全景](#采样策略全景)
+- [PRNG：xorshift128](#prngxorshift128)
+- [命令行参数](#命令行参数)
+- [一句话总结](#一句话总结)
 
 ---
 
-## 7.1 生成循环：prefill + decode 两阶段
+## 生成循环：prefill + decode 两阶段
 
 一次完整生成分两步走：先把 prompt 全部「读」进去（prefill），再一格一格「写」出新 token（decode）。
 
@@ -105,7 +105,7 @@ if (pos == n_prompt) {
 
 ---
 
-## 7.2 为什么必须分两阶段
+## 为什么必须分两阶段
 
 一个常见疑问：**prompt 有 n 个 token，能不能一次性并行算完，而不是一格一格走？**
 
@@ -219,7 +219,7 @@ cache 里全是向量（128 维的浮点数数组），不是 token id。这就�
 
 ---
 
-## 7.3 prefill 和 decode 其实干的是同一件事
+## prefill 和 decode 其实干的是同一件事
 
 仔细看会发现：prefill 的每一步和 decode 的每一步，做的事**一模一样**：
 
@@ -274,7 +274,7 @@ for (int pos = 0; pos < total_len; pos++) {
 
 ---
 
-## 7.4 为什么 prefill 计算密集、decode 内存密集
+## 为什么 prefill 计算密集、decode 内存密集
 
 工业引擎（vLLM/SGLang）常说「prefill 是计算密集型，decode 是内存密集型」。但前面刚说两者 forward 一样，为什么瓶颈不同？
 
@@ -353,7 +353,7 @@ decode = 零售:
 
 ---
 
-## 7.5 采样策略全景
+## 采样策略全景
 
 `sample()` 函数（`run.c:84`）支持四种策略，由 `temperature` 和 `top_k` 两个参数组合控制。
 
@@ -528,7 +528,7 @@ probs = [0.5, 0.3, 0.15, 0.05]
 
 ---
 
-## 7.6 随机数生成器：xorshift128 算法
+## 随机数生成器：xorshift128 算法
 
 采样需要随机数。本项目不依赖系统的 `/dev/random`，而是用一个**确定性**的伪随机数生成器（PRNG）——这样**同一个 seed 永远生成同一个序列**，方便复现 bug。
 
@@ -600,7 +600,7 @@ C 标准库的 `rand()` 有几个问题：
 
 ---
 
-## 7.7 命令行参数
+## 命令行参数
 
 `run.c` 的 `main()` 解析这些参数：
 
@@ -675,7 +675,7 @@ for (int i = 4; i < argc; i++) {
 
 ---
 
-## 7.8 一句话总结
+## 一句话总结
 
 **生成 = prefill（把 prompt 灌进 KV Cache）+ decode（自回归一格一格采样）**。
 采样 = `softmax(logits/T)` → top-k 截断长尾 → 轮盘赌选一个。

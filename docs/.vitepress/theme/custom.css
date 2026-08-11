@@ -94,21 +94,34 @@
   letter-spacing: 0.02em;
 }
 
-/* 标题字重: 不要太粗, 柔和一点 */
+/* 标题: 强层次感, 不靠编号靠字号 */
 .vp-doc h1 {
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 800;
+  font-size: 38px !important;
+  letter-spacing: -0.03em;
+  margin-bottom: 28px !important;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--vp-c-brand);
 }
 
 .vp-doc h2 {
-  font-weight: 650;
-  padding-top: 24px;
-  margin-top: 40px !important;
+  font-weight: 750;
+  font-size: 28px !important;
+  letter-spacing: -0.02em;
+  padding-top: 28px;
+  margin-top: 48px !important;
   border-top: 1px solid var(--vp-c-divider);
 }
 
 .vp-doc h3 {
+  font-weight: 650;
+  font-size: 22px !important;
+  margin-top: 32px !important;
+}
+
+.vp-doc h4 {
   font-weight: 600;
+  font-size: 18px !important;
 }
 
 /* ─── 首页 Hero ─── */

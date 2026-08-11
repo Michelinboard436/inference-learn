@@ -8,7 +8,7 @@
 
 ---
 
-## 2.1 safetensors 文件格式
+## safetensors 文件格式
 
 HuggingFace 的 safetensors 格式极简，设计目标是「安全（不能执行代码）+ 快（mmap 友好）」。它的二进制布局是这样的：
 
@@ -49,7 +49,7 @@ flowchart TB
 
 > 📍 **在哪**：`safetensors.h` 顶部的注释把这套布局又复述了一遍。`safetensors_open()` 函数（`safetensors.c`）按这三段依次解析。
 
-## 2.2 核心术语
+## 核心术语
 
 在进入代码之前，先讲清楚两个底层概念，它们决定了为什么代码这么写。
 
@@ -95,7 +95,7 @@ static unsigned long read_u64_le(const unsigned char *b) {
 
 > 📍 **在哪**：`safetensors.c` 的 `read_u64_le()`，用来读文件最开头那 8 字节的 header 长度。
 
-## 2.3 数据类型：bf16 / fp16 / fp32
+## 数据类型：bf16 / fp16 / fp32
 
 权重用 **bfloat16** 存储（省一半空间），但引擎用 **float32** 计算（精度高）。所以加载时要做一次 `bf16 → fp32` 的转换。
 
@@ -137,7 +137,7 @@ memcpy(&out[i], &bits, 4);           // 位重新解释成 float
 
 `safetensors.c` 文件顶部的注释专门强调了这条规则——为什么必须用 `memcpy(&f, &fp32_bits, 4)` 而不是直接解引用。这是 C 语言里一个经典的坑，开了 `-O2` 优化后违反严格别名可能导致诡异 bug。
 
-## 2.4 权重的张量命名规则
+## 权重的张量命名规则
 
 Qwen2.5 在 safetensors 里的张量命名遵循 transformers 惯例：
 
@@ -190,7 +190,7 @@ static int load_layered(SafetensorsFile *st, float *dst,
 
 > 📍 **在哪**：`safetensors.c` 的 `load_layered()` 和宏 `LAYER_NAME`，被 `safetensors_load_weights()` 反复调用。
 
-## 2.5 实例：embedding 表在文件里的精确位置
+## 实例：embedding 表在文件里的精确位置
 
 光讲布局还是抽象。用 `./run info` 看真实数据：
 
@@ -288,7 +288,7 @@ w->token_embedding_table (544 MB, 1亿3573万个 float):
 
 > **这 896 个数字怎么来的？** 是训练出来的。训练时模型不断调整这 1.35 亿个数字，让意思相近的词向量也相近。加载的 safetensors 里存的，就是训练完的最优值。
 
-## 2.6 SafetensorsFile 结构体
+## SafetensorsFile 结构体
 
 整个加载过程围绕一个结构体 `SafetensorsFile`，它在 `safetensors.h` 里定义：
 

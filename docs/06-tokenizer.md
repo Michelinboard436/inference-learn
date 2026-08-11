@@ -26,7 +26,7 @@
 
 ---
 
-## 6.1 为什么需要分词
+## 为什么需要分词
 
 模型只懂数字（token id），不懂字符。分词器是文本和 id 的桥梁：
 
@@ -50,7 +50,7 @@
 
 ---
 
-## 6.2 BPE（Byte-Pair Encoding，字节对编码）
+## BPE（Byte-Pair Encoding，字节对编码）
 
 ### 算法：从单字符开始，反复合并出现频率最高的相邻对
 
@@ -122,7 +122,7 @@ static int merge_rank(Tokenizer *t, int a, int b) {
 
 ---
 
-## 6.3 Byte-level 映射
+## Byte-level 映射
 
 ### 问题：空格、换行等控制字符不好放进词表
 
@@ -197,7 +197,7 @@ flowchart TD
 
 ---
 
-## 6.4 Pre-tokenization
+## Pre-tokenization
 
 ### BPE 不是在整个文本上跑，而是先切成 pre-token
 
@@ -253,7 +253,7 @@ if (c == ' ' && i + 1 < text_len) {
 
 ---
 
-## 6.5 哈希表（FNV-1a）
+## 哈希表（FNV-1a）
 
 ### 问题：vocab 有 15 万条，编码时要频繁查「字符串→id」
 
@@ -335,7 +335,7 @@ static int build_vocab_index(Tokenizer *t) {
 
 ---
 
-## 6.6 BOS / EOS / PAD
+## BOS / EOS / PAD
 
 三个特殊 token，标记序列的结构：
 
@@ -371,7 +371,7 @@ int tokenizer_encode(Tokenizer *t, const char *text, int bos_id,
 
 ---
 
-## 6.7 Tokenizer 结构体 + tokenizer.bin 文件格式
+## Tokenizer 结构体 + tokenizer.bin 文件格式
 
 ### Tokenizer 结构体
 
@@ -435,7 +435,7 @@ tokenizer.bin 布局 (全部小端):
 
 ---
 
-## 6.8 完整 encode + decode 流程
+## 完整 encode + decode 流程
 
 ### encode：文本 → token id 序列
 
@@ -481,7 +481,7 @@ id=1879 → "Ġworld"       → 反映射 Ġ→空格 → 输出 " world"
 
 ---
 
-## 6.9 核心洞察小结
+## 核心洞察小结
 
 1. **分词器是文本和数字之间的桥梁**：模型只懂数字（token id），分词器把文字切分成 token。
 
