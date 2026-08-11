@@ -12,6 +12,8 @@ Build a Transformer inference engine from scratch in pure C — no PyTorch, no A
 [![Lines: ~2700](https://img.shields.io/badge/Code-~2700行_C-orange.svg)]()
 [![Docs: 中文](https://img.shields.io/badge/Docs-中文-red.svg)]()
 
+📖 **[在线文档](https://jackiesre721.github.io/inference-learn/)** · 📦 **[源码](https://github.com/jackiesre721/inference-learn)**
+
 </div>
 
 > **English**: A minimal LLM inference engine written in pure C (~2700 lines, zero dependencies).
