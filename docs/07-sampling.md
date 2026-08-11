@@ -12,10 +12,12 @@
 
 - [7.1 生成循环：prefill + decode 两阶段](#71-生成循环prefill--decode-两阶段)
 - [7.2 为什么必须分两阶段](#72-为什么必须分两阶段)
-- [7.3 采样策略全景](#73-采样策略全景)
-- [7.4 PRNG：xorshift128](#74-prngxorshift128)
-- [7.5 命令行参数](#75-命令行参数)
-- [7.6 一句话总结](#76-一句话总结)
+- [7.3 prefill 和 decode 其实干的是同一件事](#73-prefill-和-decode-其实干的是同一件事)
+- [7.4 为什么 prefill 计算密集、decode 内存密集](#74-为什么-prefill-计算密集decode-内存密集)
+- [7.5 采样策略全景](#75-采样策略全景)
+- [7.6 PRNG：xorshift128](#76-prngxorshift128)
+- [7.7 命令行参数](#77-命令行参数)
+- [7.8 一句话总结](#78-一句话总结)
 
 ---
 
@@ -217,7 +219,141 @@ cache 里全是向量（128 维的浮点数数组），不是 token id。这就�
 
 ---
 
-## 7.3 采样策略全景
+## 7.3 prefill 和 decode 其实干的是同一件事
+
+仔细看会发现：prefill 的每一步和 decode 的每一步，做的事**一模一样**：
+
+```
+prefill 的每一步:                    decode 的每一步:
+  ① 查 embedding                       ① 查 embedding
+  ② 投影出 Q, K, V                     ② 投影出 Q, K, V
+  ③ 把 K, V 存进 cache                 ③ 把 K, V 存进 cache
+  ④ Q 和 cache 里的 K 算注意力         ④ Q 和 cache 里的 K 算注意力
+  ⑤ 加权 V                             ⑤ 加权 V
+  ⑥ 过 MLP                             ⑥ 过 MLP
+  ⑦ 算 logits                          ⑦ 算 logits
+```
+
+代码里两者用的是**同一个 `forward()` 函数**：
+
+```c
+for (int pos = 0; pos < total_len; pos++) {
+    forward(&cfg, &w, &s, token, pos);   // ★ prefill 和 decode 都调这个
+
+    int next;
+    if (pos < n_prompt - 1) {
+        next = prompt_tokens[pos + 1];   // prefill: 用 prompt 下一格
+    } else {
+        next = sample(s.logits, ...);    // decode: 自己采样
+    }
+}
+```
+
+`forward()` 自己根本不知道这是 prefill 还是 decode。**唯一的区别在 forward 之后——下一个 token 从哪来**：
+
+```
+       forward() 函数 (net.c, 每次都一样)
+            │
+            │ 输出 logits
+            ▼
+       ┌────┴────┐
+       │ logits  │
+       └────┬────┘
+            │
+    ┌───────┴───────┐
+    │               │
+  prefill          decode
+    │               │
+  丢掉 logits     用 logits 采样
+  用 prompt 下一格  用采样结果
+```
+
+**为什么要区分**：因为 prompt 是用户给的，不该让模型改写。如果 prefill 也采样，模型可能把"你好"篡改成"你吗"。所以 prefill 强制用 prompt 的下一格，**不信任模型输出**；到了 prompt 最后一个 token 才开始信任模型、采样生成。
+
+> 一句话：**prefill 和 decode 是同一个 forward 的两种使用方式**——forward 内部完全一样，区别只在「logits 算完后，下一个 token 从哪来」。
+
+---
+
+## 7.4 为什么 prefill 计算密集、decode 内存密集
+
+工业引擎（vLLM/SGLang）常说「prefill 是计算密集型，decode 是内存密集型」。但前面刚说两者 forward 一样，为什么瓶颈不同？
+
+**关键前提**：工业引擎不是一个个 token 串行算的，prefill 和 decode 的处理方式不同：
+
+```
+prefill (能并行): prompt 的 N 个 token 打包成 [N, 896] 矩阵, 一次 matmul 全算
+decode  (必须串行): 下一个 token 依赖上一个的采样, 无法并行, 每次只算 1 个
+```
+
+### 算术强度：决定瓶颈的关键指标
+
+「算术强度」= 计算量 ÷ 读取量（FLOP/字节）。比值高→计算密集，比值低→内存密集。
+
+以 Qwen2.5-0.5B 为例：
+
+```
+=== prefill 1000 个 token (并行) ===
+  计算量: 1000 × 0.49 GFLOP = 0.49 TFLOP
+  权重读取: 15 GB (不管多少 token, 权重只读一遍, 1000 个 token 共享)
+  算术强度: 0.49e12 / 15e9 = 32.6 FLOP/字节
+  → 计算量远大于读取量 → 计算密集型 (算力是瓶颈)
+
+=== decode 生成 1 个 token (串行) ===
+  计算量: 1 × 0.49 GFLOP = 0.49 GFLOP
+  权重读取: 15 GB (★ 每个 token 都要读全部权重!)
+  算术强度: 0.49e9 / 15e9 = 0.033 FLOP/字节
+  → 读取量远大于计算量 → 内存密集型 (带宽是瓶颈)
+```
+
+差距惊人——**prefill 的算术强度是 decode 的 1000 倍**。
+
+### 为什么 decode 每次都要读全部权重
+
+decode 每步只处理 1 个 token，但要为这 1 个 token 算 QKV 投影，必须读完整的 Wq(896×896)、Wk、Wv……所有 24 层的权重：
+
+```
+decode 1 个 token:
+  Layer 0: 读 Wq + Wk + Wv + Wo + MLP三个矩阵 (约 60 万个数)
+  Layer 1: 读同样多
+  ...
+  Layer 23: 读同样多
+
+  → 算 1 个 token, 却要把 15GB 权重全读一遍
+  → 计算很少 (0.49 GFLOP), 但读取很多 (15GB)
+  → 显存带宽成了瓶颈: "权重搬得过来吗?"
+```
+
+而 prefill 同时算 1000 个 token，**同样读 15GB 权重**，但做了 1000 倍的计算 → 算力成了瓶颈。
+
+### 批发 vs 零售类比
+
+```
+prefill = 批发:
+  一车货(15GB 权重) 卸给 1000 个客户(1000 个 token)
+  货只搬一次, 但要分给很多人 → 工作量大 → 搬运工(算力)不够用
+  → 计算密集
+
+decode = 零售:
+  一车货(15GB 权重) 只卖给 1 个客户(1 个 token)
+  为了 1 个客户开了整辆车 → 货车(带宽)开销大, 成交额(计算)小
+  → 内存密集
+```
+
+### 不同瓶颈决定不同优化方向
+
+| | prefill（计算密集） | decode（内存密集） |
+|---|---|---|
+| **瓶颈** | GPU 算力 | 显存带宽 |
+| **优化** | Tensor Core、Flash Attention | 量化、continuous batching |
+| **效果** | 算力利用率↑ | 带宽利用率↑ |
+
+**为什么 vLLM 死磕 continuous batching**：decode 单个 token 读 15GB 只算 0.49G——太亏。把 100 个用户的 decode 拼一起（batch），读一遍 15GB 算 100 个 token → 读取量摊薄 100 倍 → 带宽利用率大幅提高。
+
+> **注意**：以上分析针对工业引擎的并行/批处理方式。本项目的 prefill 和 decode 都是串行一个个算（`forward` 每次只处理 1 个 token），所以两者瓶颈差别不大。理解了工业引擎的区分，才能明白 vLLM 的优化都在对症下药。
+
+---
+
+## 7.5 采样策略全景
 
 `sample()` 函数（`run.c:84`）支持四种策略，由 `temperature` 和 `top_k` 两个参数组合控制。
 
@@ -392,7 +528,7 @@ probs = [0.5, 0.3, 0.15, 0.05]
 
 ---
 
-## 7.4 PRNG：xorshift128
+## 7.6 PRNG：xorshift128
 
 采样需要随机数。本项目不依赖系统的 `/dev/random`，而是用一个**确定性**的伪随机数生成器（PRNG）——这样**同一个 seed 永远生成同一个序列**，方便复现 bug。
 
@@ -464,7 +600,7 @@ C 标准库的 `rand()` 有几个问题：
 
 ---
 
-## 7.5 命令行参数
+## 7.7 命令行参数
 
 `run.c` 的 `main()` 解析这些参数：
 
@@ -539,7 +675,7 @@ for (int i = 4; i < argc; i++) {
 
 ---
 
-## 7.6 一句话总结
+## 7.8 一句话总结
 
 **生成 = prefill（把 prompt 灌进 KV Cache）+ decode（自回归一格一格采样）**。
 采样 = `softmax(logits/T)` → top-k 截断长尾 → 轮盘赌选一个。
