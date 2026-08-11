@@ -114,7 +114,7 @@ fwrite(buf, 1, blen, stdout);
 ./run model.safetensors tokenizer.bin "你好" -v > out.txt
 ```
 
-如果日志和生成都走 stdout，这些场景就全乱套了——文本文件里会混入一堆彩色日志。
+如果日志和生成都走 stdout，这些场景就全乱套了：文本文件里会混入一堆彩色日志。
 
 对照表：
 
@@ -236,7 +236,7 @@ void log_line(LogLevel level, LogCategory cat, int indent, const char *fmt, ...)
 
 ## 向量统计：范数、激活率
 
-光 dump 原始数字没用——一个 896 维向量打印出来是天书。日志系统提供几个**摘要函数**，把向量压缩成一两个有意义的数字。
+光 dump 原始数字没用：一个 896 维向量打印出来是天书。日志系统提供几个**摘要函数**，把向量压缩成一两个有意义的数字。
 
 ### L2 范数（vec_norm）
 
@@ -252,7 +252,7 @@ float vec_norm(const float *v, int n) {
 
 作用：日志里用范数摘要一个向量的整体大小。比如「第 5 层输出范数 = 87.3」，比打印 896 个数有用得多。
 
-调试时关键看**范数是否稳定**——第 5.2 节那张表就是用范数监控每一层，发现不归一化会从 0.86 爆炸到 690 亿。
+调试时关键看**范数是否稳定**：第 5.2 节那张表就是用范数监控每一层，发现不归一化会从 0.86 爆炸到 690 亿。
 
 > 注意用 `double` 累加再开方，避免 896 个 `float` 平方和精度损失。这是数值编程的常见技巧。
 
@@ -391,7 +391,7 @@ static int html_escape(const char *src, char *out, int outsize) {
 
 ### 内存收集机制
 
-日志不会立刻写进 HTML——而是先收集到一个内存结构 `TraceLog`，运行结束时一次性渲染：
+日志不会立刻写进 HTML：而是先收集到一个内存结构 `TraceLog`，运行结束时一次性渲染：
 
 ```c
 typedef struct {
@@ -420,7 +420,7 @@ static void trace_append(LogLevel level, LogCategory cat, int indent,
 ```
 
 > 省内存技巧：不生成报告时（`g_report == 0`）完全不收集，避免 trace 级日志吃光内存。
-> 生成模式下，`run.c` 在每轮 decode 前调用 `trace_clear()` 清空，**只保留最后一个 token 的轨迹**——否则几百个 token 的 trace 会把内存撑爆。
+> 生成模式下，`run.c` 在每轮 decode 前调用 `trace_clear()` 清空，**只保留最后一个 token 的轨迹**：否则几百个 token 的 trace 会把内存撑爆。
 
 ---
 
@@ -477,11 +477,11 @@ buf = "a=42" → 写到 stderr + 收集到内存
 
 ### 为什么不能直接 `snprintf(buf, n, fmt, ...)`
 
-因为 `...` 不是真正的参数——你没法把它**转发**给另一个函数。`log_printf` 拿到的可变参数，必须先用 `va_list` 打包，再用 `vsnprintf` 处理。这是 C 语言可变参数函数的标准模式。
+因为 `...` 不是真正的参数：你没法把它**转发**给另一个函数。`log_printf` 拿到的可变参数，必须先用 `va_list` 打包，再用 `vsnprintf` 处理。这是 C 语言可变参数函数的标准模式。
 
 ---
 
 ## 一句话总结
 
 **日志系统 = 分级（info/debug/trace）+ 分流（stderr 日志 / stdout 生成）+ 摘要（范数/激活率把向量压成数字）+ 可视化（HTML 报告）**。
-四件法宝配合，让一个 0.5B 模型的内部计算从黑盒变成可观测的过程——这是第 9 章调试方法论能成立的前提。
+四件法宝配合，让一个 0.5B 模型的内部计算从黑盒变成可观测的过程：这是第 9 章调试方法论能成立的前提。

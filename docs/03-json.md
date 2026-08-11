@@ -4,7 +4,7 @@
 
 本章解决一个问题：**safetensors 的 header 是 JSON，怎么在纯 C 里解析它**。
 
-上一章我们看到，safetensors 文件的第二段是一个 JSON 对象，记录了每个张量的名字、dtype、shape、data_offsets。引擎要拿到这些信息才能去 raw buffer 里取数据。问题是——本项目不依赖任何外部库，而 C 标准库没有 JSON 解析器。所以我们必须自己写一个。
+上一章我们看到，safetensors 文件的第二段是一个 JSON 对象，记录了每个张量的名字、dtype、shape、data_offsets。引擎要拿到这些信息才能去 raw buffer 里取数据。问题是：本项目不依赖任何外部库，而 C 标准库没有 JSON 解析器。所以我们必须自己写一个。
 
 听起来很吓人，但其实 JSON 的语法极其简单，一个 300 行的递归下降解析器就够用了。
 
@@ -33,7 +33,7 @@ safetensors 的 header 是一个 JSON 对象，长这样（简化）：
 
 解析它需要 JSON parser。但我们不依赖任何外部库（这是本项目"纯 C、零依赖"的设计原则），所以手写一个**刚好够用**的极简版。
 
-**够用**的标准是：能解析 safetensors header 里出现的所有结构——对象、数组、字符串、数字、`true`/`false`/`null`。不追求完整 RFC 兼容，不支持注释、不支持尾随逗号的容错（但 safetensors 不需要这些）。
+**够用**的标准是：能解析 safetensors header 里出现的所有结构：对象、数组、字符串、数字、`true`/`false`/`null`。不追求完整 RFC 兼容，不支持注释、不支持尾随逗号的容错（但 safetensors 不需要这些）。
 
 > 📍 在哪：`json.h` 顶部注释明确写了"目标：刚好够解析 safetensors 的 header。不追求完整 RFC 兼容"。
 
@@ -42,7 +42,7 @@ safetensors 的 header 是一个 JSON 对象，长这样（简化）：
 这是整个解析器的核心思想。
 
 - JSON 是嵌套结构（对象里有数组，数组里有对象……）。递归下降 = 遇到 `{` 就调 `parse_object()`，遇到 `[` 就调 `parse_array()`，函数自己调自己。
-- 为什么需要：嵌套结构没法用简单的循环处理，递归天然契合——每深入一层就多一次函数调用，栈自动记录"我在哪一层"。
+- 为什么需要：嵌套结构没法用简单的循环处理，递归天然契合：每深入一层就多一次函数调用，栈自动记录"我在哪一层"。
 
 整个解析器入口是 `parse_value`，它根据当前字符决定走哪个分支：
 
@@ -153,7 +153,7 @@ static char *parse_string_raw(Parser *ps) {
 }
 ```
 
-支持的转义：`\" \\ \/ \b \f \n \r \t`，以及 `\uXXXX`（把 4 位十六进制码点转成 UTF-8 字节）。`\u` 的代理对做了简化处理——直接存 BMP 码点，因为 safetensors header 里基本不会出现 emoji 之类需要代理对的字符。
+支持的转义：`\" \\ \/ \b \f \n \r \t`，以及 `\uXXXX`（把 4 位十六进制码点转成 UTF-8 字节）。`\u` 的代理对做了简化处理：直接存 BMP 码点，因为 safetensors header 里基本不会出现 emoji 之类需要代理对的字符。
 
 > 📍 在哪：`json.c` 的 `parse_string_raw()`，两遍扫描的逻辑都在里面。
 
@@ -212,7 +212,7 @@ JSON:  { "a": 1, "b": [2, 3] }
 
 注意 OBJECT 的存储方式有点特别：key 本身也是一个 `JsonValue`（类型 `JSON_STRING`），它的 `value_child` 指向真正的 value。这样 OBJECT 的 `first_child` 链表里混着的全是 key 节点，遍历时每个 key 通过 `value_child` 拿到 value。
 
-这是为了复用同一套"链表遍历"代码——object 和 array 的子节点管理完全一样，区别只在 object 的子节点（key）多挂了一个 `value_child`。
+这是为了复用同一套"链表遍历"代码：object 和 array 的子节点管理完全一样，区别只在 object 的子节点（key）多挂了一个 `value_child`。
 
 ### 三个查询函数
 
@@ -265,7 +265,7 @@ unsigned long off0 = (unsigned long)json_array_get(doff, 0)->number;  // [start,
 unsigned long off1 = (unsigned long)json_array_get(doff, 1)->number;
 ```
 
-这就是 `json.c` 存在的全部意义——给 `safetensors.c` 提供"按名查张量元信息"的能力。
+这就是 `json.c` 存在的全部意义：给 `safetensors.c` 提供"按名查张量元信息"的能力。
 
 ## 内存管理
 
@@ -289,7 +289,7 @@ void json_free(JsonValue *v) {
 }
 ```
 
-注意 OBJECT 节点释放时的细节：它的 `first_child` 链表里是 key 节点，每个 key 节点的 `value_child` 指向 value——这个 value 要单独 `json_free`，否则内存泄漏。ARRAY 节点则没有这个 `value_child`，直接递归子节点就行。
+注意 OBJECT 节点释放时的细节：它的 `first_child` 链表里是 key 节点，每个 key 节点的 `value_child` 指向 value：这个 value 要单独 `json_free`，否则内存泄漏。ARRAY 节点则没有这个 `value_child`，直接递归子节点就行。
 
 > 📍 在哪：`json.c` 的 `json_free()`，被 `safetensors_close()` 调用，在关闭文件时把 header 树整个释放掉。
 
@@ -309,9 +309,9 @@ JsonValue *json_parse(const char *text) {
 }
 ```
 
-`json_free` 在中途失败时也能正确清理已分配的子树——这就是为什么每个 `parse_xxx` 在出错时都会先 `json_free` 已经建好的部分再返回 `NULL`，避免内存泄漏。
+`json_free` 在中途失败时也能正确清理已分配的子树：这就是为什么每个 `parse_xxx` 在出错时都会先 `json_free` 已经建好的部分再返回 `NULL`，避免内存泄漏。
 
-这种"出错就回滚"的策略对 safetensors header 足够用——header 格式是程序生成的，正常情况不会出错；如果真出错，直接报错退出，不需要"容错恢复"。
+这种"出错就回滚"的策略对 safetensors header 足够用：header 格式是程序生成的，正常情况不会出错；如果真出错，直接报错退出，不需要"容错恢复"。
 
 ---
 

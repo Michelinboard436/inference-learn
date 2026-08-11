@@ -45,7 +45,7 @@ flowchart TB
     A --> B --> C
 ```
 
-关键洞察：JSON 头记录了每个张量在 raw buffer 中的 `[start, end)` 区间。加载时只要按 offset 取指针——零拷贝，不用把数据搬来搬去。
+关键洞察：JSON 头记录了每个张量在 raw buffer 中的 `[start, end)` 区间。加载时只要按 offset 取指针：零拷贝，不用把数据搬来搬去。
 
 > 📍 在哪：`safetensors.h` 顶部的注释把这套布局又复述了一遍。`safetensors_open()` 函数（`safetensors.c`）按这三段依次解析。
 
@@ -113,7 +113,7 @@ fp16 (16位): [符号 1] [指数 5] [尾数 10]   ← 指数位少, 动态范围
 
 bf16 就是 fp32 的高 16 位，左移即可：
 
-这个图展示 bf16 的 16 位如何对齐放进 fp32 的 32 位——bf16 整体放在高 16 位，低 16 位补零：
+这个图展示 bf16 的 16 位如何对齐放进 fp32 的 32 位：bf16 整体放在高 16 位，低 16 位补零：
 
 ```mermaid
 flowchart LR
@@ -135,7 +135,7 @@ memcpy(&out[i], &bits, 4);           // 位重新解释成 float
 
 - C 编译器认为 `float*` 和 `uint32_t*` 指向同一块内存是「未定义行为」。所以不能用 `*(float*)&bits` 做类型转换，要用 `memcpy`（编译器会优化成零开销）。
 
-`safetensors.c` 文件顶部的注释专门强调了这条规则——为什么必须用 `memcpy(&f, &fp32_bits, 4)` 而不是直接解引用。这是 C 语言里一个经典的坑，开了 `-O2` 优化后违反严格别名可能导致诡异 bug。
+`safetensors.c` 文件顶部的注释专门强调了这条规则：为什么必须用 `memcpy(&f, &fp32_bits, 4)` 而不是直接解引用。这是 C 语言里一个经典的坑，开了 `-O2` 优化后违反严格别名可能导致诡异 bug。
 
 ## 权重的张量命名规则
 
@@ -164,7 +164,7 @@ model.norm.weight                              ← 最终 RMSNorm
 - `self_attn` / `mlp`：注意力子模块和前馈子模块。
 - `input_layernorm` / `post_attention_layernorm`：两个 RMSNorm，对应第一章说的"每层两次归一化"。
 
-关键：`tie_word_embeddings=true` 时，没有 `lm_head.weight`——输出头复用 `embed_tokens`。所以引擎最后算 logits 时，用的是同一张 embedding 表转置过来用（见 `net.c` 的最终输出代码）。
+关键：`tie_word_embeddings=true` 时，没有 `lm_head.weight`：输出头复用 `embed_tokens`。所以引擎最后算 logits 时，用的是同一张 embedding 表转置过来用（见 `net.c` 的最终输出代码）。
 
 > 📍 在哪：`safetensors.c` 的 `safetensors_load_weights()` 把这些名字一一映射到 `TransformerWeights` 结构体的字段，并用注释列出了完整的命名对照表。
 
@@ -219,7 +219,7 @@ model.safetensors 文件 (988 MB 总大小)
 └──────────────────────────────────────────────────────────┘
 ```
 
-**embedding 表占了整个模型文件的 260/988 ≈ 26%**——超过四分之一。这也是为什么小模型的 embedding 表占比特别高：词表（151936）相对特征维（896）很大，而层数（24）又少。
+**embedding 表占了整个模型文件的 260/988 ≈ 26%**：超过四分之一。这也是为什么小模型的 embedding 表占比特别高：词表（151936）相对特征维（896）很大，而层数（24）又少。
 
 ### 从磁盘到内存的完整旅程
 
@@ -284,7 +284,7 @@ w->token_embedding_table (544 MB, 1亿3573万个 float):
        └────────────────────────────────────┘
 ```
 
-查表过程就一步：`table[token_id]`，取出那一行的 896 个数字。这就是"词嵌入"（embedding）的全部操作——没有计算，只是按行号取数据。
+查表过程就一步：`table[token_id]`，取出那一行的 896 个数字。这就是"词嵌入"（embedding）的全部操作：没有计算，只是按行号取数据。
 
 > **这 896 个数字怎么来的？** 是训练出来的。训练时模型不断调整这 1.35 亿个数字，让意思相近的词向量也相近。加载的 safetensors 里存的，就是训练完的最优值。
 
@@ -348,6 +348,6 @@ data ─────────────────────────
 5. **embedding 表占文件 26%**（260MB），是 raw buffer 的开头那一段；加载后翻倍成 544MB（bf16→fp32）。
 6. **权重命名遵循 `model.layers.{N}.xxx` 规律**，`tie_word_embeddings=true` 时输出头复用 embedding 表。
 
-下一章我们看那个 JSON 头是怎么被解析的——因为 safetensors 的 header 就是 JSON，而我们的引擎不依赖任何外部库，所以得手写一个 JSON 解析器。
+下一章我们看那个 JSON 头是怎么被解析的：因为 safetensors 的 header 就是 JSON，而我们的引擎不依赖任何外部库，所以得手写一个 JSON 解析器。
 
 > 继续阅读：[第三章 JSON 解析器](03-json.md)

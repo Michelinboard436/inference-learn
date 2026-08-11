@@ -60,7 +60,7 @@ for (int pos = 0; pos < total_len; pos++) {
 
 ### prefill 阶段：teacher forcing
 
-prefill 不采样，而是「按标准答案走」——这叫 **teacher forcing**（教师强制）。
+prefill 不采样，而是「按标准答案走」：这叫 **teacher forcing**（教师强制）。
 
 ```
 prompt = "你好世界"  →  tokens = [你, 好, 世, 界]
@@ -87,7 +87,7 @@ forward(当前 token)
   → 当作下一步的输入 token
 ```
 
-这就是「自回归」(autoregressive)——输出又变成输入，循环往复。
+这就是「自回归」(autoregressive)：输出又变成输入，循环往复。
 
 ### 两阶段的日志分界
 
@@ -118,7 +118,7 @@ if (pos == n_prompt) {
 
 ### KV Cache 在两阶段的作用
 
-#### 放进 cache 的到底是什么——不是 token，是 K 和 V 向量
+#### 放进 cache 的到底是什么：不是 token，是 K 和 V 向量
 
 常见误解：「prefill 把 token（符号/编号）放进 cache」。不是。token 进了网络后会变成 896 维向量，再经过投影变成 K 和 V，放进去的是 K 和 V 这两个向量：
 
@@ -152,7 +152,7 @@ K = 每个 token "是什么标签"        ← 存进 cache ★
 V = 每个 token "携带什么内容"      ← 存进 cache ★
 ```
 
-Q 每次都要重新算（每个新 token 的 Q 不一样），但 **K 和 V 一旦算过就不用再算了**——同一个 token 的 K 和 V 永远一样。所以 cache 的作用是：**把所有历史 token 的 K 和 V 存起来，避免每次都重算**。
+Q 每次都要重新算（每个新 token 的 Q 不一样），但 **K 和 V 一旦算过就不用再算了**：同一个 token 的 K 和 V 永远一样。所以 cache 的作用是：**把所有历史 token 的 K 和 V 存起来，避免每次都重算**。
 
 #### prefill 填 cache 的完整过程
 
@@ -213,9 +213,9 @@ Q 每次都要重新算（每个新 token 的 Q 不一样），但 **K 和 V 一
 存起来就不用每次重算了
 ```
 
-cache 里全是向量（128 维的浮点数数组），不是 token id。这就是为什么 cache 占内存——每个位置存 K 和 V 各 128 个 float，24 层 × seq_len 个位置，总共约 50MB。prefill 的唯一目的就是**把这个 cache 填满**，让 decode 阶段生成的新 token 能看到整个 prompt 的上下文。
+cache 里全是向量（128 维的浮点数数组），不是 token id。这就是为什么 cache 占内存：每个位置存 K 和 V 各 128 个 float，24 层 × seq_len 个位置，总共约 50MB。prefill 的唯一目的就是**把这个 cache 填满**，让 decode 阶段生成的新 token 能看到整个 prompt 的上下文。
 
-如果没有 KV Cache，decode 每一步都要重算一遍 prompt 所有 token 的 K/V——`n` 步就 `O(n²)`。有了 cache 复杂度降到 `O(n)`。这是为什么生成能跑得动的根本原因。
+如果没有 KV Cache，decode 每一步都要重算一遍 prompt 所有 token 的 K/V：`n` 步就 `O(n²)`。有了 cache 复杂度降到 `O(n)`。这是为什么生成能跑得动的根本原因。
 
 ---
 
@@ -249,7 +249,7 @@ for (int pos = 0; pos < total_len; pos++) {
 }
 ```
 
-`forward()` 自己根本不知道这是 prefill 还是 decode。唯一的区别在 forward 之后——下一个 token 从哪来：
+`forward()` 自己根本不知道这是 prefill 还是 decode。唯一的区别在 forward 之后：下一个 token 从哪来：
 
 ```
        forward() 函数 (net.c, 每次都一样)
@@ -270,7 +270,7 @@ for (int pos = 0; pos < total_len; pos++) {
 
 为什么要区分：因为 prompt 是用户给的，不该让模型改写。如果 prefill 也采样，模型可能把"你好"篡改成"你吗"。所以 prefill 强制用 prompt 的下一格，不信任模型输出；到了 prompt 最后一个 token 才开始信任模型、采样生成。
 
-> 一句话：**prefill 和 decode 是同一个 forward 的两种使用方式**——forward 内部完全一样，区别只在「logits 算完后，下一个 token 从哪来」。
+> 一句话：**prefill 和 decode 是同一个 forward 的两种使用方式**：forward 内部完全一样，区别只在「logits 算完后，下一个 token 从哪来」。
 
 ---
 
@@ -305,7 +305,7 @@ decode  (必须串行): 下一个 token 依赖上一个的采样, 无法并行, 
   → 读取量远大于计算量 → 内存密集型 (带宽是瓶颈)
 ```
 
-差距惊人——**prefill 的算术强度是 decode 的 1000 倍**。
+差距惊人：**prefill 的算术强度是 decode 的 1000 倍**。
 
 ### 为什么 decode 每次都要读全部权重
 
@@ -347,7 +347,7 @@ decode = 零售:
 | **优化** | Tensor Core、Flash Attention | 量化、continuous batching |
 | **效果** | 算力利用率↑ | 带宽利用率↑ |
 
-为什么 vLLM 死磕 continuous batching：decode 单个 token 读 15GB 只算 0.49G——太亏。把 100 个用户的 decode 拼一起（batch），读一遍 15GB 算 100 个 token → 读取量摊薄 100 倍 → 带宽利用率大幅提高。
+为什么 vLLM 死磕 continuous batching：decode 单个 token 读 15GB 只算 0.49G：太亏。把 100 个用户的 decode 拼一起（batch），读一遍 15GB 算 100 个 token → 读取量摊薄 100 倍 → 带宽利用率大幅提高。
 
 > 注意：以上分析针对工业引擎的并行/批处理方式。本项目的 prefill 和 decode 都是串行一个个算（`forward` 每次只处理 1 个 token），所以两者瓶颈差别不大。理解了工业引擎的区分，才能明白 vLLM 的优化都在对症下药。
 
@@ -357,7 +357,7 @@ decode = 零售:
 
 `sample()` 函数（`run.c:84`）支持四种策略，由 `temperature` 和 `top_k` 两个参数组合控制。
 
-下面这个流程图展示完整的采样决策过程——从 logits 到最终选出一个 token：
+下面这个流程图展示完整的采样决策过程：从 logits 到最终选出一个 token：
 
 ```mermaid
 flowchart TD
@@ -391,7 +391,7 @@ if (temperature == 0.0f) {
 
 特点：
 
-- 完全确定——同一个 prompt + 同一个模型，永远生成同样的输出
+- 完全确定：同一个 prompt + 同一个模型，永远生成同样的输出
 - 不需要随机数
 - 适合**数值验证**（和 PyTorch 对答案时用）
 
@@ -462,7 +462,7 @@ if (top_k > 0 && top_k < vocab_size) {
 }
 ```
 
-目的：只在概率最大的 k 个 token 里采样，其余全部清零——截断长尾，避免选到概率极低的乱码。
+目的：只在概率最大的 k 个 token 里采样，其余全部清零：截断长尾，避免选到概率极低的乱码。
 
 ```
 softmax 后 151936 个 token 的概率分布:
@@ -473,7 +473,7 @@ softmax 后 151936 个 token 的概率分布:
 top_k=40: 只在这 40 个里挑, 长尾直接清零
 ```
 
-工业引擎还有 top-p（nucleus sampling）：动态选概率累计达到 p 的最小集合（如 p=0.9）。本项目没实现，但思路一样——截掉小概率尾部。
+工业引擎还有 top-p（nucleus sampling）：动态选概率累计达到 p 的最小集合（如 p=0.9）。本项目没实现，但思路一样：截掉小概率尾部。
 
 ### 策略 4：轮盘赌采样（Roulette Wheel）
 
@@ -530,7 +530,7 @@ probs = [0.5, 0.3, 0.15, 0.05]
 
 ## 随机数生成器：xorshift128 算法
 
-采样需要随机数。本项目不依赖系统的 `/dev/random`，而是用一个**确定性**的伪随机数生成器（PRNG）——这样**同一个 seed 永远生成同一个序列**，方便复现 bug。
+采样需要随机数。本项目不依赖系统的 `/dev/random`，而是用一个**确定性**的伪随机数生成器（PRNG）：这样**同一个 seed 永远生成同一个序列**，方便复现 bug。
 
 ### xorshift128 算法
 
@@ -574,7 +574,7 @@ static float rng_uniform(RNG *r) {
 |------|------|------|
 | **PRNG** | Pseudo Random Number Generator | 用确定性算法生成「看起来随机」的数。给定种子，序列完全可复现 |
 | **xorshift** | XOR + shift | 一类用异或和移位操作的 PRNG，极简快速 |
-| **seed** | 种子 | 初始状态。同一种子永远产生同一序列——这就是为什么 `-s 42` 能复现 |
+| **seed** | 种子 | 初始状态。同一种子永远产生同一序列：这就是为什么 `-s 42` 能复现 |
 
 ### `rng_uniform` 怎么把 32 位整数变成 [0,1) 的 float
 
@@ -671,7 +671,7 @@ for (int i = 4; i < argc; i++) {
 ./run fwd  model.safetensors 198 0     # 单 token 前向, 打印 top-5 logits
 ```
 
-`fwd` 子命令是第 9 章调试方法论的基石——拿单个 token 的输出和 PyTorch 对答案。
+`fwd` 子命令是第 9 章调试方法论的基石：拿单个 token 的输出和 PyTorch 对答案。
 
 ---
 
@@ -679,4 +679,4 @@ for (int i = 4; i < argc; i++) {
 
 **生成 = prefill（把 prompt 灌进 KV Cache）+ decode（自回归一格一格采样）**。
 采样 = `softmax(logits/T)` → top-k 截断长尾 → 轮盘赌选一个。
-随机数用 xorshift128 是为了**同 seed 可复现**——这是工程上调试和验证的必要前提。
+随机数用 xorshift128 是为了**同 seed 可复现**：这是工程上调试和验证的必要前提。

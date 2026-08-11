@@ -22,7 +22,7 @@ features:
     details: 不用 PyTorch，不用任何 AI 框架，只靠 libc。~2700 行代码全部可读，每个算子都是手写的三重循环。
   - icon: 🧠
     title: 手写全部算子
-    details: RMSNorm、RoPE 旋转位置编码、GQA 分组注意力、SwiGLU 门控激活、KV Cache —— 从公式到代码逐一拆解。
+    details: RMSNorm、RoPE 旋转位置编码、GQA 分组注意力、SwiGLU 门控激活、KV Cache ： 从公式到代码逐一拆解。
   - icon: 🔢
     title: 数值已验证
     details: 前向传播结果和 PyTorch 官方实现对比，误差 < 0.0002。贪心生成和 HF 逐 token 一致。

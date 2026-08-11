@@ -79,7 +79,7 @@
 
 ## Part 1 · 基础
 
-> 万丈高楼平地起——先搞清楚权重文件长什么样、维度代表什么。
+> 万丈高楼平地起：先搞清楚权重文件长什么样、维度代表什么。
 
 ### [第 1 章 · 基础概念](./01-basics)
 
@@ -103,7 +103,7 @@ safetensors 文件格式、mmap 零拷贝加载、bf16→fp32 位转换、embedd
 
 ## Part 2 · 核心
 
-> 引擎的心脏——模型结构和前向传播的全部算子。
+> 引擎的心脏：模型结构和前向传播的全部算子。
 
 ### [第 4 章 · 模型结构](./04-model)
 
@@ -113,7 +113,7 @@ Config / TransformerWeights / RunState 三大结构体，net.h 里每一个字�
 
 ### [第 5 章 · 前向传播 ★](./05-forward)
 
-**最重要的一章。** RMSNorm、matmul、RoPE、Attention、GQA、SwiGLU、KV Cache、残差连接——6 个算子逐个拆解，含 cat dog 真实数值演示 + 多 token 协同。
+**最重要的一章。** RMSNorm、matmul、RoPE、Attention、GQA、SwiGLU、KV Cache、残差连接：6 个算子逐个拆解，含 cat dog 真实数值演示 + 多 token 协同。
 
 > 配合源码：`net.c` · 891 行 · 6 张 Mermaid 图
 
