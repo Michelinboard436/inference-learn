@@ -4,7 +4,7 @@
 
 **从零用纯 C 写一个 Transformer 推理引擎，理解 LLM 的每一个零件**
 
-不依赖 PyTorch，不依赖任何 AI 框架，只靠 libc。
+Build a Transformer inference engine from scratch in pure C — no PyTorch, no AI frameworks, just libc.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Language: C](https://img.shields.io/badge/Language-C99-blue.svg)]()
@@ -13,6 +13,10 @@
 [![Docs: 中文](https://img.shields.io/badge/Docs-中文-red.svg)]()
 
 </div>
+
+> **English**: A minimal LLM inference engine written in pure C (~2700 lines, zero dependencies).
+> Loads Qwen2.5-0.5B weights (safetensors), implements RMSNorm / RoPE / GQA / SwiGLU / KV Cache / BPE from scratch.
+> Numerically verified against PyTorch (error < 0.0002). Full documentation in Chinese (10 chapters + 13 Mermaid diagrams).
 
 ---
 
@@ -168,3 +172,14 @@ inference-learn/
 ## 📄 License
 
 MIT
+
+---
+
+<details>
+<summary><b>🏷️ Keywords</b>（帮助 GitHub 搜索检索）</summary>
+
+**English**: llm inference engine | transformer from scratch | pure c | qwen2.5 | gqa grouped query attention | rope rotary position embedding | rmsnorm | swiglu | kv cache | bpe tokenizer | safetensors | deep learning | language model | chatgpt architecture | nano inference | learn llm
+
+**中文**: 大模型推理引擎 | 从零实现 transformer | 纯 c 大模型 | qwen2.5 部署 | gqa 分组注意力 | rope 旋转位置编码 | rmsnorm 归一化 | swiglu 激活函数 | kv cache 缓存 | bpe 分词器 | safetensors 加载 | 深度学习 | 语言模型 | chatgpt 原理 | llm 学习 | 推理引擎原理
+
+</details>
