@@ -35,14 +35,14 @@ safetensors 的 header 是一个 JSON 对象，长这样（简化）：
 
 **够用**的标准是：能解析 safetensors header 里出现的所有结构——对象、数组、字符串、数字、`true`/`false`/`null`。不追求完整 RFC 兼容，不支持注释、不支持尾随逗号的容错（但 safetensors 不需要这些）。
 
-> 📍 **在哪**：`json.h` 顶部注释明确写了"目标：刚好够解析 safetensors 的 header。不追求完整 RFC 兼容"。
+> 📍 **在哪：`json.h` 顶部注释明确写了"目标：刚好够解析 safetensors 的 header。不追求完整 RFC 兼容"。
 
 ## 递归下降解析（Recursive Descent）
 
 这是整个解析器的核心思想。
 
-- **：JSON 是嵌套结构（对象里有数组，数组里有对象……）。递归下降 = 遇到 `{` 就调 `parse_object()`，遇到 `[` 就调 `parse_array()`，函数自己调自己。
-- 为什么需要**：嵌套结构没法用简单的循环处理，递归天然契合——每深入一层就多一次函数调用，栈自动记录"我在哪一层"。
+- JSON 是嵌套结构（对象里有数组，数组里有对象……）。递归下降 = 遇到 `{` 就调 `parse_object()`，遇到 `[` 就调 `parse_array()`，函数自己调自己。
+- 为什么需要：嵌套结构没法用简单的循环处理，递归天然契合——每深入一层就多一次函数调用，栈自动记录"我在哪一层"。
 
 整个解析器入口是 `parse_value`，它根据当前字符决定走哪个分支：
 
@@ -134,9 +134,9 @@ static JsonValue *parse_number(Parser *ps) {
 
 字符串是最复杂的部分，因为有转义。`parse_string_raw` 用了"两遍法"：
 
-1. **第一遍**：扫描一遍算出反转义后的长度（因为 `\"` 两个字符变成一个 `"`，长度会变）。
+1. **第一遍：扫描一遍算出反转义后的长度（因为 `\"` 两个字符变成一个 `"`，长度会变）。
 2. **malloc** 分配刚好够的内存。
-3. **第二遍**：再扫一遍，真正填内容，边扫边反转义。
+3. **第二遍：再扫一遍，真正填内容，边扫边反转义。
 
 ```c
 static char *parse_string_raw(Parser *ps) {
@@ -155,7 +155,7 @@ static char *parse_string_raw(Parser *ps) {
 
 支持的转义：`\" \\ \/ \b \f \n \r \t`，以及 `\uXXXX`（把 4 位十六进制码点转成 UTF-8 字节）。`\u` 的代理对做了简化处理——直接存 BMP 码点，因为 safetensors header 里基本不会出现 emoji 之类需要代理对的字符。
 
-> 📍 **在哪**：`json.c` 的 `parse_string_raw()`，两遍扫描的逻辑都在里面。
+> 📍 **在哪：`json.c` 的 `parse_string_raw()`，两遍扫描的逻辑都在里面。
 
 ## JsonValue 树结构
 
@@ -188,7 +188,7 @@ typedef enum {
 } JsonType;
 ```
 
-**设计要点**：数组和对象都用「FirstChild + NextSibling」的链表表示，避免动态数组。
+**设计要点：数组和对象都用「FirstChild + NextSibling」的链表表示，避免动态数组。
 
 ```
 JSON:  { "a": 1, "b": [2, 3] }
@@ -291,7 +291,7 @@ void json_free(JsonValue *v) {
 
 注意 OBJECT 节点释放时的细节：它的 `first_child` 链表里是 key 节点，每个 key 节点的 `value_child` 指向 value——这个 value 要单独 `json_free`，否则内存泄漏。ARRAY 节点则没有这个 `value_child`，直接递归子节点就行。
 
-> 📍 **在哪**：`json.c` 的 `json_free()`，被 `safetensors_close()` 调用，在关闭文件时把 header 树整个释放掉。
+> 📍 **在哪：`json.c` 的 `json_free()`，被 `safetensors_close()` 调用，在关闭文件时把 header 树整个释放掉。
 
 ## 错误处理
 
@@ -317,11 +317,11 @@ JsonValue *json_parse(const char *text) {
 
 ## 本章小结
 
-1. **为什么自己写 JSON 解析器**：本项目零依赖，C 标准库没有 JSON，而 safetensors header 是 JSON。
-2. **递归下降**：遇到 `{` 调 `parse_object`，遇到 `[` 调 `parse_array`，函数自己调自己，天然契合 JSON 的嵌套结构。
-3. **JsonValue 树**：解析结果是一棵树，用「FirstChild + NextSibling」链表表示数组和对象的子节点；OBJECT 的 key 节点通过 `value_child` 指向 value。
-4. **字符串两遍法**：第一遍算反转义后的长度，第二遍填内容，避免缓冲区大小估计错误。
-5. **生命周期**：`safetensors_open` 时 `json_parse` 一次建树，之后反复查询；`safetensors_close` 时 `json_free` 整棵释放。
+1. **为什么自己写 JSON 解析器：本项目零依赖，C 标准库没有 JSON，而 safetensors header 是 JSON。
+2. **递归下降：遇到 `{` 调 `parse_object`，遇到 `[` 调 `parse_array`，函数自己调自己，天然契合 JSON 的嵌套结构。
+3. **JsonValue 树：解析结果是一棵树，用「FirstChild + NextSibling」链表表示数组和对象的子节点；OBJECT 的 key 节点通过 `value_child` 指向 value。
+4. **字符串两遍法：第一遍算反转义后的长度，第二遍填内容，避免缓冲区大小估计错误。
+5. **生命周期：`safetensors_open` 时 `json_parse` 一次建树，之后反复查询；`safetensors_close` 时 `json_free` 整棵释放。
 
 这个解析器虽然只有 300 行，但它是一个完整的、能正确处理真实 safetensors header 的 JSON 解析器。理解了它，你也就理解了所有递归下降解析器（包括很多编译器前端）的基本套路。
 

@@ -31,9 +31,9 @@ HuggingFace 的 safetensors 格式极简，设计目标是「安全（不能执�
 
 整个文件就三段：
 
-1. **前 8 字节**：一个小端序的 64 位整数，告诉你第二段（JSON 头）有多少字节。
-2. **JSON 头**：一张"元信息表"，记录每个张量的名字、数据类型、形状、以及它的原始字节在第三段里的起止位置。
-3. **原始数据**：所有张量的字节紧密排列在一起，没有任何分隔符或对齐填充。
+1. **前 8 字节：一个小端序的 64 位整数，告诉你第二段（JSON 头）有多少字节。
+2. **JSON 头：一张"元信息表"，记录每个张量的名字、数据类型、形状、以及它的原始字节在第三段里的起止位置。
+3. **原始数据：所有张量的字节紧密排列在一起，没有任何分隔符或对齐填充。
 
 这个图展示 safetensors 文件的三段式二进制布局，以及每段在真实模型文件里大约占多大：
 
@@ -45,9 +45,9 @@ flowchart TB
     A --> B --> C
 ```
 
-**关键洞察**：JSON 头记录了每个张量在 raw buffer 中的 `[start, end)` 区间。加载时只要按 offset 取指针——**零拷贝**，不用把数据搬来搬去。
+**关键洞察：JSON 头记录了每个张量在 raw buffer 中的 `[start, end)` 区间。加载时只要按 offset 取指针——**零拷贝**，不用把数据搬来搬去。
 
-> 📍 **在哪**：`safetensors.h` 顶部的注释把这套布局又复述了一遍。`safetensors_open()` 函数（`safetensors.c`）按这三段依次解析。
+> 📍 **在哪：`safetensors.h` 顶部的注释把这套布局又复述了一遍。`safetensors_open()` 函数（`safetensors.c`）按这三段依次解析。
 
 ## 核心术语
 
@@ -55,8 +55,8 @@ flowchart TB
 
 ### mmap（内存映射文件）
 
-- **：把磁盘文件「映射」到内存地址空间，访问内存等于读文件，不用 `fread`。
-- 为什么用**：读 1GB 权重时，`fread` 要多次系统调用 + 额外 buffer；`mmap` 让操作系统按需把文件页加载进内存，近乎瞬时，内存占用按需。
+- 把磁盘文件「映射」到内存地址空间，访问内存等于读文件，不用 `fread`。
+- 为什么用：读 1GB 权重时，`fread` 要多次系统调用 + 额外 buffer；`mmap` 让操作系统按需把文件页加载进内存，近乎瞬时，内存占用按需。
 
 ```c
 void *map = mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0);
@@ -69,11 +69,11 @@ void *map = mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0);
 - `MAP_PRIVATE`：私有映射（写时复制，不影响原文件）
 - `MAP_FAILED`：映射失败的返回值（代码里用来检查错误）
 
-> 📍 **在哪**：`safetensors.c` 的 `safetensors_open()` 函数里那行 `mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0)`。映射完拿到指针，后续所有读操作都基于这个指针算偏移。
+> 📍 **在哪：`safetensors.c` 的 `safetensors_open()` 函数里那行 `mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0)`。映射完拿到指针，后续所有读操作都基于这个指针算偏移。
 
 ### little-endian（小端序）
 
-- **：多字节数据在内存里的排列顺序。「小端」= 低位字节存在低地址。
+- 多字节数据在内存里的排列顺序。「小端」= 低位字节存在低地址。
 
 ```
 数字 0x12345678 (4字节) 的小端存储:
@@ -93,7 +93,7 @@ static unsigned long read_u64_le(const unsigned char *b) {
 }
 ```
 
-> 📍 **在哪**：`safetensors.c` 的 `read_u64_le()`，用来读文件最开头那 8 字节的 header 长度。
+> 📍 **在哪：`safetensors.c` 的 `read_u64_le()`，用来读文件最开头那 8 字节的 header 长度。
 
 ## 数据类型：bf16 / fp16 / fp32
 
@@ -107,7 +107,7 @@ bf16 (16位): [符号 1] [指数 8] [尾数  7]   ← 就是 fp32 砍掉低 16 �
 fp16 (16位): [符号 1] [指数 5] [尾数 10]   ← 指数位少, 动态范围小
 ```
 
-**为什么用 bf16 不用 fp16**：bf16 保留了 fp32 的 8 位指数（动态范围一样），只牺牲尾数精度。训练时不容易溢出，所以成了现代 GPU/TPU 默认格式。
+**为什么用 bf16 不用 fp16：bf16 保留了 fp32 的 8 位指数（动态范围一样），只牺牲尾数精度。训练时不容易溢出，所以成了现代 GPU/TPU 默认格式。
 
 ### bf16 → fp32 转换
 
@@ -129,11 +129,11 @@ uint32_t bits = ((uint32_t)b) << 16; // 放到 fp32 高 16 位
 memcpy(&out[i], &bits, 4);           // 位重新解释成 float
 ```
 
-> 📍 **在哪**：`safetensors.c` 的 `safetensors_load_float()` 函数里 `BF16` 分支。逐元素把 2 字节扩成 4 字节。`F16` 分支也实现了（处理非正规数、inf/nan），但 Qwen2.5 用不到，只是顺手支持。
+> 📍 **在哪：`safetensors.c` 的 `safetensors_load_float()` 函数里 `BF16` 分支。逐元素把 2 字节扩成 4 字节。`F16` 分支也实现了（处理非正规数、inf/nan），但 Qwen2.5 用不到，只是顺手支持。
 
 ### strict aliasing（严格别名规则）
 
-- **：C 编译器认为 `float*` 和 `uint32_t*` 指向同一块内存是「未定义行为」。所以不能用 `*(float*)&bits` 做类型转换，要用 `memcpy`（编译器会优化成零开销）。
+- C 编译器认为 `float*` 和 `uint32_t*` 指向同一块内存是「未定义行为」。所以不能用 `*(float*)&bits` 做类型转换，要用 `memcpy`（编译器会优化成零开销）。
 
 `safetensors.c` 文件顶部的注释专门强调了这条规则——为什么必须用 `memcpy(&f, &fp32_bits, 4)` 而不是直接解引用。这是 C 语言里一个经典的坑，开了 `-O2` 优化后违反严格别名可能导致诡异 bug。
 
@@ -164,9 +164,9 @@ model.norm.weight                              ← 最终 RMSNorm
 - `self_attn` / `mlp`：注意力子模块和前馈子模块。
 - `input_layernorm` / `post_attention_layernorm`：两个 RMSNorm，对应第一章说的"每层两次归一化"。
 
-**关键**：`tie_word_embeddings=true` 时，**没有 `lm_head.weight`**——输出头复用 `embed_tokens`。所以引擎最后算 logits 时，用的是同一张 embedding 表转置过来用（见 `net.c` 的最终输出代码）。
+**关键：`tie_word_embeddings=true` 时，**没有 `lm_head.weight`**——输出头复用 `embed_tokens`。所以引擎最后算 logits 时，用的是同一张 embedding 表转置过来用（见 `net.c` 的最终输出代码）。
 
-> 📍 **在哪**：`safetensors.c` 的 `safetensors_load_weights()` 把这些名字一一映射到 `TransformerWeights` 结构体的字段，并用注释列出了完整的命名对照表。
+> 📍 **在哪：`safetensors.c` 的 `safetensors_load_weights()` 把这些名字一一映射到 `TransformerWeights` 结构体的字段，并用注释列出了完整的命名对照表。
 
 ### 逐层拼装的技巧
 
@@ -188,7 +188,7 @@ static int load_layered(SafetensorsFile *st, float *dst,
 
 每一层读出来临时存放，再 `memcpy` 拼到目标大数组的对应位置。24 层循环完，就得到一个连续的 `(n_layers, ...)` 张量。
 
-> 📍 **在哪**：`safetensors.c` 的 `load_layered()` 和宏 `LAYER_NAME`，被 `safetensors_load_weights()` 反复调用。
+> 📍 **在哪：`safetensors.c` 的 `load_layered()` 和宏 `LAYER_NAME`，被 `safetensors_load_weights()` 反复调用。
 
 ## 实例：embedding 表在文件里的精确位置
 
@@ -284,7 +284,7 @@ w->token_embedding_table (544 MB, 1亿3573万个 float):
        └────────────────────────────────────┘
 ```
 
-**查表过程就一步**：`table[token_id]`，取出那一行的 896 个数字。这就是"词嵌入"（embedding）的全部操作——没有计算，只是按行号取数据。
+**查表过程就一步：`table[token_id]`，取出那一行的 896 个数字。这就是"词嵌入"（embedding）的全部操作——没有计算，只是按行号取数据。
 
 > **这 896 个数字怎么来的？** 是训练出来的。训练时模型不断调整这 1.35 亿个数字，让意思相近的词向量也相近。加载的 safetensors 里存的，就是训练完的最优值。
 
@@ -323,7 +323,7 @@ data ─────────────────────────
 - `header_json`：JSON 头的文本（拷贝了一份，加了 `\0` 结尾）。
 - `header`：用 JSON 解析器（下一章）把 `header_json` 解析成的树，之后查张量元信息都走这棵树。
 
-> 📍 **在哪**：`safetensors.h` 的结构体定义；`safetensors.c` 的 `safetensors_open()` 负责填好所有字段，`safetensors_close()` 负责 `munmap` + `free` + 释放 JSON 树。
+> 📍 **在哪：`safetensors.h` 的结构体定义；`safetensors.c` 的 `safetensors_open()` 负责填好所有字段，`safetensors_close()` 负责 `munmap` + `free` + 释放 JSON 树。
 
 ### 四个对外函数
 
