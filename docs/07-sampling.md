@@ -137,6 +137,25 @@ decode 阶段:
 
 `sample()` 函数（`run.c:84`）支持四种策略，由 `temperature` 和 `top_k` 两个参数组合控制。
 
+下面这个流程图展示完整的采样决策过程——从 logits 到最终选出一个 token：
+
+```mermaid
+flowchart TD
+    L["forward 输出 logits<br/>(151936 个分数)"]
+    L --> T{temperature<br/>是多少?}
+    T -->|"= 0"| G["Greedy 贪心<br/>直接取 argmax<br/>(完全确定)"]
+    T -->|"> 0"| S1["logits / temperature<br/>(缩放分布尖锐度)"]
+    S1 --> S2["softmax → 概率分布<br/>(151936 个概率, 和为 1)"]
+    S2 --> K{top_k > 0 ?}
+    K -->|"是"| TK["top-k 截断<br/>只保留概率最大的 k 个<br/>其余清零"]
+    K -->|"否"| NW["不截断"]
+    TK --> RW
+    NW --> RW["轮盘赌采样<br/>生成随机数 r<br/>落在哪个区间选哪个"]
+    RW --> OUT["选中一个 token id"]
+    G --> OUT
+    OUT --> NEXT["解码并打印<br/>继续下一轮 forward"]
+```
+
 ### 策略 1：Greedy（贪心，temperature=0）
 
 ```c

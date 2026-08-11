@@ -154,6 +154,22 @@ int   byte_map_len[256];        // 对应字符串的长度
 
 ### 整套编码流程（结合 byte-level + BPE）
 
+下面这个流程图展示一段文本从「字符串」变成「token id 序列」的完整过程：
+
+```mermaid
+flowchart TD
+    IN["输入文本<br/>'Hello world'"]
+    IN --> S1["① UTF-8 编码<br/>变成字节序列"]
+    S1 --> S2["② byte-level 映射<br/>每个字节 → 可打印 unicode 字符<br/>(空格→Ġ)"]
+    S2 --> S3["③ pre-tokenization<br/>按空格粘后面规则切分<br/>得到 'Hello' 和 ' world'"]
+    S3 --> S4["④ 对每个 pre-token 跑 BPE"]
+    S4 --> S5["初始: 每个字符单独一个 token"]
+    S5 --> S6["反复合并最高优先级的相邻对<br/>直到无法合并"]
+    S6 --> S7["⑤ 输出 token id 序列<br/>Hello→9707,  world→1879"]
+```
+
+逐步看每个阶段的数据变化：
+
 ```
 "Hello world"  (原始文本)
    │

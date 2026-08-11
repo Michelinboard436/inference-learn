@@ -166,6 +166,40 @@ x_新 = x_新 + MLP(x_新)         ← 加上"自己思考的结果"
    最终 RMSNorm + 投影回词表 → logits (5.9)
 ```
 
+这个图展示一个 token 从输入到输出的完整旅程：经过 embedding 查表得到 896 维起点向量，再依次穿过 24 层 Transformer（每层做 Attention + MLP 两件事），最终归一化并投影回 151936 维词表，采样得到下一个 token。
+
+```mermaid
+flowchart TD
+    Tok["token id<br/>(整数, 如 9707)"]
+    Emb["查 embedding 表<br/>(151936 × 896 的固化矩阵)"]
+    Vec["896 维向量<br/>(固化的起点)"]
+    Tok --> Emb --> Vec
+
+    subgraph Layers["24 层 Transformer (Layer 0 → Layer 23, 每层权重独立固化)"]
+        direction TB
+        subgraph Layer["单层内部 (重复 24 次)"]
+            direction TB
+            LN1["① RMSNorm 归一化 (5.2)"]
+            QKV["② QKV 投影 (5.3)"]
+            RoPE["③ RoPE 旋转位置编码 (5.4)"]
+            KVC["④ 存 K/V 到 KV Cache"]
+            Attn["⑤ Attention + GQA (5.5 / 5.6)"]
+            Res1["⑥ 输出投影 + 残差 (5.8)"]
+            LN2["⑦ RMSNorm 归一化"]
+            MLP["⑧ SwiGLU MLP (5.7)"]
+            Res2["⑨ 残差叠加"]
+            LN1 --> QKV --> RoPE --> KVC --> Attn --> Res1 --> LN2 --> MLP --> Res2
+        end
+    end
+    Vec --> Layers
+
+    Final["最终 RMSNorm (5.9)"]
+    Logits["logits<br/>(151936 维分数)"]
+    Sample["采样<br/>(greedy / temperature)"]
+    Next["下一个 token"]
+    Layers --> Final --> Logits --> Sample --> Next
+```
+
 对应源码：`net.c` 的 `forward()` 函数（第 182 行起），主循环 `for (int l = 0; l < L; l++)` 在第 210 行。
 
 ---
@@ -427,6 +461,57 @@ static void rope(float *vec, int head_dim, int pos, float base) {
 }
 ```
 
+这个图展示 RoPE 的两个关键概念：左图——896 维向量怎么切成 14 个头（每个头 64 维），64 维内部按 HF "half" 模式把前 32 维和后 32 维配对成 32 个复数对；右图——同一个向量在不同位置 pos=0/1/2 被旋转不同角度（每对的频率 freq 不同，位置越大旋转角越大），最终 Q 和 K 旋转后做点积，结果只依赖相对位置 (m−n)。
+
+```mermaid
+flowchart LR
+    subgraph Split["① 切分: 896 维 → 14 个头, 每头 64 维"]
+        direction TB
+        Full["完整 896 维向量<br/>(Q 或 K)"]
+        H0["head 0: 维度 0~63"]
+        H1["head 1: 维度 64~127"]
+        Hdots["..."]
+        H13["head 13: 维度 832~895"]
+        Full --> H0
+        Full --> H1
+        Full --> Hdots
+        Full --> H13
+    end
+
+    subgraph Pair["② 单个 64 维头内部 (half 模式): 前 32 维 + 后 32 维 两两配对"]
+        direction TB
+        P0["对 0: vec[0] ⟷ vec[32]"]
+        P1["对 1: vec[1] ⟷ vec[33]"]
+        Pdots["..."]
+        P31["对 31: vec[31] ⟷ vec[63]"]
+        P0 --> P1 --> Pdots --> P31
+    end
+    Split --> Pair
+```
+
+配对之后，每对 (a, b) 被当作一个复数 a + bi，乘以 e^{iθ} 做旋转。**位置越大，旋转角越大；低频对（高维索引 i 大）转得慢，编码长距离；高频对转得快，编码短距离**。
+
+```mermaid
+flowchart LR
+    subgraph Pos["③ 同一个向量在不同位置旋转不同角度"]
+        direction TB
+        P0["pos = 0<br/>旋转角 θ = 0<br/>(不转)"]
+        P1["pos = 1<br/>旋转角 θ = freq<br/>(转一格)"]
+        P2["pos = 2<br/>旋转角 θ = 2·freq<br/>(转两格)"]
+        P0 --> P1 --> P2
+    end
+
+    subgraph Dot["④ 旋转后的 Q · K 点积"]
+        direction TB
+        Qnote["Q 在位置 m 旋转 θ_m"]
+        Knote["K 在位置 n 旋转 θ_n"]
+        Rel["点积结果只依赖<br/>θ_m − θ_n = (m−n)·freq<br/>= 相对距离"]
+        Qnote --> Rel
+        Knote --> Rel
+    end
+    Pos --> Dot
+```
+
 **核心直觉**：把相邻两个维度看作复数，乘以 e^{iθ} 做旋转。
 位置 m 和位置 n 的注意力分数只依赖 (m-n) 即相对距离。
 
@@ -576,6 +661,71 @@ dog 的输出 = 49% × V(cat) + 51% × V(dog)
   ... 经过 24 层同样的处理 ...       ... 经过 24 层同样的处理 ...
      |                                  |
   最终向量 → logits → 预测下一个词
+```
+
+这个图展示 Attention 的计算流程：14 个 Q 头逐个拿当前 token 的 Query 去和 KV Cache 里所有历史位置的 Key 做点积算分数，softmax 归一化成权重，再用权重对 Value 加权求和，得到每个头的输出。
+
+```mermaid
+flowchart LR
+    Q14["Q<br/>(14 个 Q 头, 每头 64 维)<br/>当前 token 的提问"]
+    KC["K Cache<br/>(2 个 KV 头)<br/>所有历史位置的标签"]
+    VC["V Cache<br/>(2 个 KV 头)<br/>所有历史位置的内容"]
+
+    Q14 --> Dot["Q · Kᵀ / √64<br/>逐头算匹配分数"]
+    KC --> Dot
+    Dot --> Soft["softmax<br/>分数 → 概率"]
+    Soft --> W["按概率加权"]
+    VC --> W
+    W --> Out["每头输出<br/>(14 × 64 维)"]
+    Out --> WO["@ Wo 投影<br/>拼接回 896 维"]
+    WO --> Final["Attention 输出"]
+```
+
+这个图展示 GQA（分组查询注意力）的核心：Qwen2.5-0.5B 有 14 个 Q 头但只有 2 个 KV 头。每 7 个 Q 头共享同一组 K/V（head 0~6 共享 KV 头 0，head 7~13 共享 KV 头 1），KV Cache 内存因此从 14 份降到 2 份，省 7 倍。
+
+```mermaid
+flowchart LR
+    subgraph QHeads["14 个 Q 头"]
+        direction TB
+        QG0["head 0<br/>head 1<br/>head 2<br/>head 3<br/>head 4<br/>head 5<br/>head 6"]
+        QG1["head 7<br/>head 8<br/>head 9<br/>head 10<br/>head 11<br/>head 12<br/>head 13"]
+    end
+
+    KV0["KV 头 0<br/>(共享的 K 和 V)"]
+    KV1["KV 头 1<br/>(共享的 K 和 V)"]
+
+    QG0 -->|7 个 Q 头共用| KV0
+    QG1 -->|7 个 Q 头共用| KV1
+```
+
+这个图展示 KV Cache 随生成步骤累积的过程：pos=0 时 Cache 里只有 1 项（第 1 个 token 的 K/V），pos=1 时追加到 2 项，pos=2 时 3 项……每个新 token 算出的 K/V 都追加进 Cache，下次 forward 时之前的所有 K/V 都能被读到。
+
+```mermaid
+flowchart LR
+    subgraph P0["pos = 0 (生成第 1 个 token)"]
+        direction TB
+        C0["KV Cache<br/>[ 项0 ]<br/>(1 项)"]
+    end
+
+    subgraph P1["pos = 1 (生成第 2 个 token)"]
+        direction TB
+        C1["KV Cache<br/>[ 项0, 项1 ]<br/>(2 项)"]
+    end
+
+    subgraph P2["pos = 2 (生成第 3 个 token)"]
+        direction TB
+        C2["KV Cache<br/>[ 项0, 项1, 项2 ]<br/>(3 项)"]
+    end
+
+    New0["新 token 的 K/V"]
+    New1["新 token 的 K/V"]
+    New2["新 token 的 K/V"]
+
+    New0 -->|追加| C0
+    New1 -->|追加| C1
+    New2 -->|追加| C2
+
+    P0 --> P1 --> P2
 ```
 
 > **关键洞察**：经过一层 attention，dog 的表示里已经混入了 cat 的信息。
