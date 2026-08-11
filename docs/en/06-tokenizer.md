@@ -167,7 +167,7 @@ flowchart TD
     S3 --> S4["④ run BPE on each pre-token"]
     S4 --> S5["initial: each character is its own token"]
     S5 --> S6["repeatedly merge the highest-priority adjacent pair<br/>until no more merges possible"]
-    S6 --> S7["⑤ output token id sequence<br/>Hello→9707,  world→1879"]
+    S6 --> S7["⑤ output token id sequence<br/>Hello-9707, world-1879"]
 ```
 
 Walking through how the data changes at each stage:

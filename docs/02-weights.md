@@ -39,9 +39,9 @@ HuggingFace 的 safetensors 格式极简，设计目标是「安全（不能执�
 
 ```mermaid
 flowchart TB
-    A["前 8 字节<br/>小端 u64 整数 N<br/>说明 JSON 头有多长"]
-    B["接下来 N 字节<br/>JSON 头 约 32 KB<br/>记录每个张量的元信息"]
-    C["剩余全部字节<br/>raw buffer 约 988 MB<br/>所有张量原始字节紧密排列"]
+    A["前8字节<br/>u64整数N<br/>JSON头长度"]
+    B["接下来N字节<br/>JSON头 约32KB<br/>张量元信息"]
+    C["剩余全部字节<br/>raw-buffer 约988MB<br/>张量原始字节"]
     A --> B --> C
 ```
 

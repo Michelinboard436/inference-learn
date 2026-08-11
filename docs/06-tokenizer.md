@@ -165,7 +165,7 @@ flowchart TD
     S3 --> S4["④ 对每个 pre-token 跑 BPE"]
     S4 --> S5["初始: 每个字符单独一个 token"]
     S5 --> S6["反复合并最高优先级的相邻对<br/>直到无法合并"]
-    S6 --> S7["⑤ 输出 token id 序列<br/>Hello→9707,  world→1879"]
+    S6 --> S7["⑤ 输出 token id 序列<br/>Hello-9707, world-1879"]
 ```
 
 逐步看每个阶段的数据变化：
