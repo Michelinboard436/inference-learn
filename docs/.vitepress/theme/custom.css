@@ -1,100 +1,254 @@
-/* ============ inference-learn 自定义主题 ============ */
+/* ============ inference-learn 专业护眼主题 ============ */
+/* 设计理念: 模拟纸张阅读体验, 降低对比度, 长时间不累眼 */
+/* 参考: GitBook / Vite 官网 / Tailwind Docs 的配色策略 */
 
-/* 深色模式品牌色: 和 social-preview 一致的蓝紫色调 */
+/* ─── 浅色模式 (护眼米白) ─── */
 :root {
-  --vp-c-brand-1: #5b8def;
-  --vp-c-brand-2: #4c7fdf;
-  --vp-c-brand-3: #3d6fcf;
-  --vp-c-brand-light: #7ba6ff;
-  --vp-c-brand-dark: #3d6fcf;
-  --vp-c-brand: #5b8def;
+  /* 品牌色: 柔和的靛蓝 */
+  --vp-c-brand-1: #4c6ef5;
+  --vp-c-brand-2: #3b5bdb;
+  --vp-c-brand-3: #2f46b8;
+  --vp-c-brand-light: #6b8cff;
+  --vp-c-brand-dark: #3b5bdb;
+  --vp-c-brand: #4c6ef5;
+
+  /* ★ 核心: 用米白替代纯白, 模拟纸张 */
+  --vp-c-bg: #fafaf7;              /* 主背景: 暖米白 (不是纯白) */
+  --vp-c-bg-alt: #f3f1ec;          /* 次背景: 更深的米色 */
+  --vp-c-bg-soft: #f5f3ee;         /* 软背景: 代码块/卡片 */
+  --vp-c-bg-soft-up: #f8f6f1;      /* 软背景上层: 引用块 */
+
+  /* 文字: 用深灰替代纯黑, 降低刺眼度 */
+  --vp-c-text-1: #2c2c2c;          /* 正文: 深灰 (不是 #000) */
+  --vp-c-text-2: #4a4a4a;          /* 次要文字 */
+  --vp-c-text-3: #7a7a7a;          /* 辅助文字 */
+
+  /* 分割线: 更柔和 */
+  --vp-c-divider: #e8e5dd;         /* 暖色分割线 */
+  --vp-c-divider-light: #f0ede5;
+
+  /* 边框 */
+  --vp-c-border: #e0ddd5;
+  --vp-c-gutter: #ddd9cf;
 
   /* Hero 渐变 */
   --vp-home-hero-name-color: transparent;
-  --vp-home-hero-name-background: -webkit-linear-gradient(120deg, #5b8def, #a6e3a1);
-  --vp-home-hero-image-background-image: linear-gradient(-45deg, #5b8def33, #a6e3a133);
-  --vp-home-hero-image-filter: blur(40px);
+  --vp-home-hero-name-background: -webkit-linear-gradient(120deg, #4c6ef5, #51cf66);
+  --vp-home-hero-image-background-image: linear-gradient(-45deg, #4c6ef522, #51cf6622);
+  --vp-home-hero-image-filter: blur(44px);
 
-  /* 字体 */
-  --vp-font-family-base: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', sans-serif;
+  /* 字体: 中文优先 PingFang/思源, 英文用系统字体 */
+  --vp-font-family-base: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Noto Sans SC', 'Source Han Sans SC', 'Helvetica Neue', sans-serif;
   --vp-font-family-mono: 'SF Mono', 'JetBrains Mono', 'Fira Code', Menlo, Consolas, monospace;
+
+  /* 代码块: 浅暖底色 */
+  --vp-code-line-bg: #f5f3ee;
+
+  /* 按钮圆角 */
+  --vp-border-radius: 8px;
+
+  /* 行高优化: 中文需要更大行高 */
+  --vp-line-height-base: 1.8;
+  --vp-line-height-loose: 2.0;
 }
 
-/* 深色模式微调 */
+/* ─── 深色模式 (柔和墨黑, 不是纯黑) ─── */
 .dark {
-  --vp-c-brand-1: #7ba6ff;
-  --vp-c-brand-2: #5b8def;
-  --vp-c-brand-3: #4c7fdf;
-  --vp-home-hero-image-background-image: linear-gradient(-45deg, #5b8def22, #a6e3a122);
+  --vp-c-brand-1: #748ffc;
+  --vp-c-brand-2: #5c7cfa;
+  --vp-c-brand-3: #4c6ef5;
+  --vp-c-brand: #748ffc;
+
+  /* ★ 核心: 用墨黑替代纯黑, 降低对比度 */
+  --vp-c-bg: #1a1a1f;              /* 主背景: 偏暖的墨黑 (不是 #000) */
+  --vp-c-bg-alt: #202028;          /* 次背景 */
+  --vp-c-bg-soft: #24242e;         /* 软背景 */
+  --vp-c-bg-soft-up: #282833;      /* 软背景上层 */
+
+  /* 文字: 用浅灰替代纯白 */
+  --vp-c-text-1: #d4d4d8;          /* 正文: 浅灰 (不是 #fff) */
+  --vp-c-text-2: #a1a1aa;
+  --vp-c-text-3: #71717a;
+
+  /* 分割线 */
+  --vp-c-divider: #2e2e38;
+  --vp-c-divider-light: #28282f;
+
+  /* 边框 */
+  --vp-c-border: #33333e;
+  --vp-c-gutter: #383843;
+
+  /* Hero */
+  --vp-home-hero-image-background-image: linear-gradient(-45deg, #4c6ef533, #51cf6633);
+
+  /* 代码块: 深暖底色 */
+  --vp-code-line-bg: #24242e;
 }
 
-/* 首页 Hero 标题放大 */
+/* ─── 全局排版优化 ─── */
+
+/* 正文中文字体 + 行高 */
+.vp-doc {
+  font-size: 16px;
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+}
+
+/* 标题字重: 不要太粗, 柔和一点 */
+.vp-doc h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.vp-doc h2 {
+  font-weight: 650;
+  padding-top: 24px;
+  margin-top: 40px !important;
+  border-top: 1px solid var(--vp-c-divider);
+}
+
+.vp-doc h3 {
+  font-weight: 600;
+}
+
+/* ─── 首页 Hero ─── */
 .VPHomeHero .name {
-  font-size: 56px !important;
-  line-height: 1.1 !important;
+  font-size: 52px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em;
 }
 
 .VPHomeHero .text {
-  font-size: 32px !important;
+  font-size: 30px !important;
   padding-top: 8px;
 }
 
 .VPHomeHero .tagline {
-  font-size: 18px !important;
+  font-size: 17px !important;
   margin-top: 12px !important;
 }
 
-/* 特性卡片悬停效果 */
+/* ─── 特性卡片 ─── */
 .VPFeatures .item {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  border-radius: 12px !important;
 }
 
 .VPFeatures .item:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
 }
 
 .VPFeatures .title {
   font-weight: 700 !important;
 }
 
-/* 代码块美化 */
+.VPFeatures .details {
+  line-height: 1.7 !important;
+}
+
+/* ─── 代码块 ─── */
 .vp-doc div[class*='language-'] {
-  border-radius: 12px !important;
-  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px !important;
+  border: 1px solid var(--vp-c-border);
+  font-size: 14px;
+  margin: 16px 0;
 }
 
-/* 行号颜色淡一点 */
+/* 行号淡化 */
 .vp-doc .line-numbers {
-  opacity: 0.5;
+  opacity: 0.45;
 }
 
-/* 表格美化 */
+/* 行内代码: 柔和背景 */
+.vp-doc :not(pre) > code {
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.88em;
+}
+
+/* ─── 表格 ─── */
 .vp-doc table {
   border-radius: 8px;
   overflow: hidden;
+  font-size: 14px;
+  margin: 20px 0;
 }
 
 .vp-doc table th {
   font-weight: 700 !important;
+  background: var(--vp-c-bg-soft);
 }
 
-/* 引用块美化 */
+.vp-doc table td {
+  line-height: 1.6;
+}
+
+/* ─── 引用块 ─── */
 .vp-doc blockquote {
   border-radius: 0 8px 8px 0;
   background: var(--vp-c-bg-soft-up);
+  border-left: 3px solid var(--vp-c-brand);
+  padding: 12px 20px;
+  margin: 16px 0;
 }
 
-/* Mermaid 图居中 */
+.vp-doc blockquote p {
+  margin: 6px 0;
+  line-height: 1.7;
+}
+
+/* ─── 列表间距优化 ─── */
+.vp-doc ul, .vp-doc ol {
+  padding-left: 24px;
+  line-height: 1.8;
+}
+
+.vp-doc li {
+  margin: 4px 0;
+}
+
+/* ─── Mermaid 图 ─── */
 .mermaid {
   text-align: center;
+  margin: 20px 0;
 }
 
-/* 侧边栏分组标题加粗 */
+/* ─── 侧边栏 ─── */
+.VPSidebar {
+  background: var(--vp-c-bg-alt) !important;
+}
+
 .VPSidebar .text {
   font-weight: 500;
 }
 
-/* 搜索框圆角 */
+/* ─── 导航栏 ─── */
+.VPNavBar {
+  background: var(--vp-c-bg) !important;
+}
+
 .VPNavBarSearch .DocSearch-Button {
   border-radius: 20px !important;
+}
+
+/* ─── 链接颜色 ─── */
+.vp-doc a {
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.vp-doc a:hover {
+  text-decoration: underline;
+}
+
+/* ─── 页面过渡 (平滑感) ─── */
+.VPContent {
+  transition: opacity 0.2s ease;
+}
+
+/* ─── 选中文本颜色 ─── */
+::selection {
+  background: var(--vp-c-brand);
+  color: white;
 }
