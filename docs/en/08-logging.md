@@ -1,6 +1,6 @@
 # Chapter 8 · Logging & Visualization (trace.c / report.c)
 
-> 🌐 [中文版](../cn/08-logging) | English
+> 🌐 [中文版](../08-logging) | English
 
 > Chapter 8 | [Previous: Chapter 7 · Sampling & Generation](./07-sampling.md) | [Next: Chapter 9 · Debugging & Verification Methodology](./09-debugging.md)
 

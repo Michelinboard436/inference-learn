@@ -1,4 +1,4 @@
-> 🌐 [中文版](../cn/04-model) | English
+> 🌐 [中文版](../04-model) | English
 
 # Chapter 4 · Model Architecture (net.h)
 

@@ -1,4 +1,4 @@
-> 🌐 [中文版](../cn/03-json) | English
+> 🌐 [中文版](../03-json) | English
 
 # Chapter 3 · JSON Parser
 

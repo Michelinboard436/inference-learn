@@ -1,6 +1,6 @@
 # Chapter 5 · Forward Pass (net.c)
 
-> 🌐 [中文版](../cn/05-forward.md) | English
+> 🌐 [中文版](../05-forward.md) | English
 
 > Chapter 5 | Companion source: `net.c` (~400 lines) | [Previous: Model Architecture](./04-model.md) | [Next: Tokenizer](./06-tokenizer.md)
 

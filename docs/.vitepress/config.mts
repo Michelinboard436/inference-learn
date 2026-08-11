@@ -25,31 +25,31 @@ const zhThemeConfig = {
     }
   },
   sidebar: [
-    { text: '📖 开始阅读', items: [{ text: '目录与阅读路径', link: '/cn/README' }] },
+    { text: '📖 开始阅读', items: [{ text: '目录与阅读路径', link: '/README' }] },
     { text: 'Part 1 · 基础', items: [
-      { text: '第 1 章 基础概念', link: '/cn/01-basics' },
-      { text: '第 2 章 权重的存储与加载', link: '/cn/02-weights' },
-      { text: '第 3 章 JSON 解析器', link: '/cn/03-json' }
+      { text: '第 1 章 基础概念', link: '/01-basics' },
+      { text: '第 2 章 权重的存储与加载', link: '/02-weights' },
+      { text: '第 3 章 JSON 解析器', link: '/03-json' }
     ]},
     { text: 'Part 2 · 核心', items: [
-      { text: '第 4 章 模型结构', link: '/cn/04-model' },
-      { text: '第 5 章 前向传播 ★', link: '/cn/05-forward' },
-      { text: '第 6 章 分词器 BPE', link: '/cn/06-tokenizer' },
-      { text: '第 7 章 采样与生成', link: '/cn/07-sampling' }
+      { text: '第 4 章 模型结构', link: '/04-model' },
+      { text: '第 5 章 前向传播 ★', link: '/05-forward' },
+      { text: '第 6 章 分词器 BPE', link: '/06-tokenizer' },
+      { text: '第 7 章 采样与生成', link: '/07-sampling' }
     ]},
     { text: 'Part 3 · 进阶', items: [
-      { text: '第 8 章 日志与可视化', link: '/cn/08-logging' },
-      { text: '第 9 章 调试与验证方法论', link: '/cn/09-debugging' },
-      { text: '第 10 章 生态对比与性能优化', link: '/cn/10-ecosystem' }
+      { text: '第 8 章 日志与可视化', link: '/08-logging' },
+      { text: '第 9 章 调试与验证方法论', link: '/09-debugging' },
+      { text: '第 10 章 生态对比与性能优化', link: '/10-ecosystem' }
     ]},
     { text: '📚 附录', items: [
-      { text: '附录 A 术语总表', link: '/cn/appendix-a-glossary' },
-      { text: '附录 B 结构体速查', link: '/cn/appendix-b-structs' }
+      { text: '附录 A 术语总表', link: '/appendix-a-glossary' },
+      { text: '附录 B 结构体速查', link: '/appendix-b-structs' }
     ]}
   ],
   nav: [
-    { text: '📖 目录', link: '/cn/README' },
-    { text: '🏠 首页', link: '/cn/' },
+    { text: '📖 目录', link: '/README' },
+    { text: '🏠 首页', link: '/' },
     { text: '💻 源码', link: 'https://github.com/jackiesre721/inference-learn' },
     { text: '🌐 English', link: '/en/' }
   ],
@@ -100,7 +100,7 @@ const enThemeConfig = {
     { text: '📖 Contents', link: '/en/README' },
     { text: '🏠 Home', link: '/en/' },
     { text: '💻 Source', link: 'https://github.com/jackiesre721/inference-learn' },
-    { text: '🌐 中文', link: '/cn/' }
+    { text: '🌐 中文', link: '/' }
   ],
   outline: { label: 'On This Page', level: [2, 3] },
   docFooter: { prev: 'Previous', next: 'Next' },
@@ -113,9 +113,8 @@ const enThemeConfig = {
 export default defineConfig({
   ...baseConfig,
   locales: {
-    root: { label: 'root', lang: 'en' },
-    'cn': { label: '简体中文', lang: 'zh-CN', themeConfig: zhThemeConfig },
-    'en': { label: 'English', lang: 'en-US', themeConfig: enThemeConfig }
+    root: { label: '简体中文', lang: 'zh-CN', themeConfig: zhThemeConfig },
+    en: { label: 'English', lang: 'en-US', themeConfig: enThemeConfig }
   },
   markdown: {
     lineNumbers: true,

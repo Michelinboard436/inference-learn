@@ -1,6 +1,6 @@
 # Chapter 9 · Debugging & Verification Methodology
 
-> 🌐 [中文版](../cn/09-debugging) | English
+> 🌐 [中文版](../09-debugging) | English
 
 > Chapter 9 | [Previous: Chapter 8 · Logging & Visualization](./08-logging.md) | [Next: Chapter 10 · Ecosystem Comparison](./10-ecosystem.md)
 
