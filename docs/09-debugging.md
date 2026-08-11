@@ -160,7 +160,7 @@ gcc -fsanitize=address,undefined -o run_dbg *.c -lm
 
 `-fsanitize=address` 开启 **AddressSanitizer（ASan）**，`-fsanitize=undefined` 开启 **UndefinedBehaviorSanitizer（UBSan）**。两者都是 GCC/Clang 自带的。
 
-**ASan 能抓的错：
+ASan 能抓的错：
 
 | 错误类型 | 说明 |
 |---------|------|
@@ -171,7 +171,7 @@ gcc -fsanitize=address,undefined -o run_dbg *.c -lm
 | Double-free | 同一块内存 free 两次 |
 | 内存泄漏（leak） | malloc 了没 free |
 
-**UBSan 能抓的错：
+UBSan 能抓的错：
 
 | 错误类型 | 说明 |
 |---------|------|
@@ -221,7 +221,7 @@ READ of size 4 at 0x6020000000d4 thread T0
 
 ### 本项目的实战经验
 
-> 作者按：本项目开发时，**两个最严重的 bug 都是 ASan 抓到的：
+> 作者按：本项目开发时，两个最严重的 bug 都是 ASan 抓到的：
 
 **Bug 1：`matmul` 参数传反**
 
@@ -256,7 +256,7 @@ gcc -fsanitize=address,undefined -O1 -g -o run_dbg *.c -lm
 | 抓内存错 | 不抓（可能崩溃可能不崩） | 立刻精确报错 |
 | 用途 | 日常运行、性能测试 | 开发、验证、找 bug |
 
-> **建议：每次写新算子或改维度相关代码后，先用 `run_dbg` 跑一遍单 token，确认无内存错，再用 `run` 测数值。
+> 建议：每次写新算子或改维度相关代码后，先用 `run_dbg` 跑一遍单 token，确认无内存错，再用 `run` 测数值。
 
 ---
 
@@ -370,7 +370,7 @@ L0_o_proj_in   = [...]          L0_o_proj_in   = [...]
 
 ## 验证清单
 
-把上面的方法整理成一个可勾选的清单。**每次改了前向传播相关代码，建议过一遍：
+把上面的方法整理成一个可勾选的清单。每次改了前向传播相关代码，建议过一遍：
 
 ### 数值验证
 

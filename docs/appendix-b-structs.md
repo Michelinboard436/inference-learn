@@ -87,7 +87,7 @@ typedef struct JsonValue {
 ```c
 typedef struct {
     int vocab_size;       // 词表大小
-    char **vocab;         // vocab[i] = token i 的字符串
+    char vocab;         // vocab[i] = token i 的字符串
     int *vocab_len;       // vocab[i] 的字节长度
     int n_merges;         // BPE 合并规则数
     int *merges;          // merges[2i]=a, merges[2i+1]=b

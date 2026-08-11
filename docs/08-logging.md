@@ -88,7 +88,7 @@ void log_printf(LogLevel level, const char *fmt, ...) {
 
 ## stderr vs stdout：日志和生成分开
 
-**这是整个日志系统最重要的设计决定：日志走 stderr，生成文本走 stdout。
+这是整个日志系统最重要的设计决定：日志走 stderr，生成文本走 stdout。
 
 ```c
 /* 日志 → stderr */
@@ -116,7 +116,7 @@ fwrite(buf, 1, blen, stdout);
 
 如果日志和生成都走 stdout，这些场景就全乱套了——文本文件里会混入一堆彩色日志。
 
-**对照表：
+对照表：
 
 | 流 | 用途 | 内容 |
 |----|------|------|
@@ -143,11 +143,11 @@ static int stderr_is_tty(void) {
 }
 ```
 
-**术语：
+术语：
 
-- TTY** = TeleTYpewriter（终端的古老叫法，沿用至今）。现在泛指交互式终端。
-- isatty** = "is a tty?"，判断文件描述符是不是终端。返回 1 是终端，0 是管道/文件。
-- fileno** = 从 `FILE*`（如 `stderr`）拿到底层的整数文件描述符（如 2）。
+- TTY = TeleTYpewriter（终端的古老叫法，沿用至今）。现在泛指交互式终端。
+- isatty = "is a tty?"，判断文件描述符是不是终端。返回 1 是终端，0 是管道/文件。
+- fileno = 从 `FILE*`（如 `stderr`）拿到底层的整数文件描述符（如 2）。
 
 缓存 `g_stderr_is_tty` 是因为 `isatty` 要做系统调用，频繁调用有开销。stderr 是不是终端在一次运行里不会变，所以查一次就够了。
 
@@ -167,7 +167,7 @@ static int stderr_is_tty(void) {
 #define C_RED     "\033[31m"     /* 红色 */
 ```
 
-**用法：在要变色的文字前插入颜色码，文字后插入 `C_RESET`：
+用法：在要变色的文字前插入颜色码，文字后插入 `C_RESET`：
 
 ```c
 fprintf(stderr, "%s%s%s", C_RED, "这条是红色", C_RESET);
@@ -250,7 +250,7 @@ float vec_norm(const float *v, int n) {
 
 向量的「长度」。`√(v[0]² + v[1]² + ... + v[895]²)`。
 
-**作用：日志里用范数摘要一个向量的整体大小。比如「第 5 层输出范数 = 87.3」，比打印 896 个数有用得多。
+作用：日志里用范数摘要一个向量的整体大小。比如「第 5 层输出范数 = 87.3」，比打印 896 个数有用得多。
 
 调试时关键看**范数是否稳定**——第 5.2 节那张表就是用范数监控每一层，发现不归一化会从 0.86 爆炸到 690 亿。
 
@@ -268,7 +268,7 @@ float vec_active_ratio(const float *v, int n, float threshold) {
 
 SwiGLU 后有多少比例的通道「亮了」（超过阈值）。反映 MLP 的稀疏性。
 
-**作用：检查 MLP 是否健康。如果激活率接近 0（所有通道都关）或接近 1（所有通道都开），说明 MLP 出问题了。
+作用：检查 MLP 是否健康。如果激活率接近 0（所有通道都关）或接近 1（所有通道都开），说明 MLP 出问题了。
 
 ```
 健康 SwiGLU 输出 (4864 维):
@@ -350,11 +350,11 @@ static const char *CSS =
 
 报告特性：
 
-- 深色主题**（Catppuccin Mocha 配色，护眼）
-- 等宽字体**（`SF Mono` / Menlo / Consolas，对齐整齐）
-- 24 层可折叠**（用 HTML `<details>` 标签，点击展开/收起）
-- 按类别着色**（CSS class 和终端颜色一一对应）
-- 自包含**（CSS 全部内联，不依赖外部文件，单 HTML 就能打开）
+- 深色主题（Catppuccin Mocha 配色，护眼）
+- 等宽字体（`SF Mono` / Menlo / Consolas，对齐整齐）
+- 24 层可折叠（用 HTML `<details>` 标签，点击展开/收起）
+- 按类别着色（CSS class 和终端颜色一一对应）
+- 自包含（CSS 全部内联，不依赖外部文件，单 HTML 就能打开）
 
 ### 折叠逻辑
 
@@ -419,7 +419,7 @@ static void trace_append(LogLevel level, LogCategory cat, int indent,
 }
 ```
 
-> **省内存技巧：不生成报告时（`g_report == 0`）完全不收集，避免 trace 级日志吃光内存。
+> 省内存技巧：不生成报告时（`g_report == 0`）完全不收集，避免 trace 级日志吃光内存。
 > 生成模式下，`run.c` 在每轮 decode 前调用 `trace_clear()` 清空，**只保留最后一个 token 的轨迹**——否则几百个 token 的 trace 会把内存撑爆。
 
 ---

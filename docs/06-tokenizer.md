@@ -36,8 +36,8 @@
 
 为什么不直接「一个字符一个 id」？两个原因：
 
-1. **字符太碎：`"Hello"` = 5 个字符 = 5 个 id，模型要算 5 步；合并成 1 个 token 只要 1 步，效率高得多。
-2. **语义更完整：`"Hello"` 作为一个整体，比 `H-e-l-l-o` 五个孤立字符携带更多语义。
+1. 字符太碎：`"Hello"` = 5 个字符 = 5 个 id，模型要算 5 步；合并成 1 个 token 只要 1 步，效率高得多。
+2. 语义更完整：`"Hello"` 作为一个整体，比 `H-e-l-l-o` 五个孤立字符携带更多语义。
 
 也不直接「一个单词一个 id」？因为词太多了（中英文 + 代码 + 各种变体），词表会爆炸。
 **BPE 是介于「字符」和「整词」之间的折中**——常见组合切成一个 token，罕见组合拆成小片段。
@@ -66,7 +66,7 @@
 每次合并都生成一条规则, 顺序就是优先级
 ```
 
-**推理时（我们做的事）：用训练好的 merges 规则，把新文本编码成 token。
+推理时（我们做的事）：用训练好的 merges 规则，把新文本编码成 token。
 
 ### "Hello" 的编码过程
 
@@ -102,7 +102,7 @@ while (1) {
 }
 ```
 
-**关键点：merge 的顺序就是优先级。`merges[0]` 最优先，`merges[1]` 次之……
+关键点：merge 的顺序就是优先级。`merges[0]` 最优先，`merges[1]` 次之……
 `merge_rank()` 查「这对 (a,b) 是第几条规则」——数字越小优先级越高。
 
 ### merge_rank：查优先级
@@ -148,9 +148,9 @@ char  byte_map_chars[256][8];   // 每个字节对应的 unicode 字符串
 int   byte_map_len[256];        // 对应字符串的长度
 ```
 
-**编码时：每个字节先查 `byte_map_chars`，变成对应的 unicode 字符串，再走 BPE。
+编码时：每个字节先查 `byte_map_chars`，变成对应的 unicode 字符串，再走 BPE。
 
-**解码时：反向映射回字节。
+解码时：反向映射回字节。
 
 ### 整套编码流程（结合 byte-level + BPE）
 
@@ -274,14 +274,14 @@ static unsigned int hash_str(const char *s, int len) {
 }
 ```
 
-**两个魔法数字：
+两个魔法数字：
 
 | 常数 | 值 | 叫什么 |
 |------|-----|--------|
 | `2166136261u` | FNV offset basis | 起始值 |
 | `16777619u` | FNV prime | 每步乘的素数 |
 
-**算法核心：对每个字节做「异或 + 乘素数」。简单到几行代码，但分布均匀、冲突少。
+算法核心：对每个字节做「异或 + 乘素数」。简单到几行代码，但分布均匀、冲突少。
 
 ### 拉链法处理冲突
 
@@ -351,7 +351,7 @@ PAD = Padding (填充符, batch 对齐用)
 | EOS | 序列结尾 | 生成时遇到它就停止 |
 | PAD | 填充 | batch 推理时把不同长度的序列补齐 |
 
-**Qwen 的设置：BOS 和 EOS 都是 id=151643 = `<|endoftext|>`。
+Qwen 的设置：BOS 和 EOS 都是 id=151643 = `<|endoftext|>`。
 
 ```c
 // tokenizer.h
@@ -379,7 +379,7 @@ int tokenizer_encode(Tokenizer *t, const char *text, int bos_id,
 // tokenizer.h
 typedef struct {
     int   vocab_size;       // 词表大小 (151936)
-    char **vocab;           // vocab[i] = token i 的字符串 (byte-level 编码后)
+    char vocab;           // vocab[i] = token i 的字符串 (byte-level 编码后)
     int  *vocab_len;        // vocab[i] 的字节长度
     int   n_merges;         // BPE 合并规则数
     int  *merges;           // merges[2i]=a, merges[2i+1]=b
@@ -392,7 +392,7 @@ typedef struct {
     /* special tokens */
     int   n_special;
     int  *special_ids;
-    char **special_strs;
+    char special_strs;
     int  *special_lens;
 
     /* byte→unicode 映射 (GPT-2 byte-level) */
@@ -483,23 +483,23 @@ id=1879 → "Ġworld"       → 反映射 Ġ→空格 → 输出 " world"
 
 ## 核心洞察小结
 
-1. **分词器是文本和数字之间的桥梁：模型只懂数字（token id），分词器把文字切分成 token。
+1. 分词器是文本和数字之间的桥梁：模型只懂数字（token id），分词器把文字切分成 token。
 
-2. **BPE 是「字符」和「整词」的折中：从字符开始反复合并最高频对，常见组合成一个 token，罕见组合拆成片段。词表控制在 15 万。
+2. BPE 是「字符」和「整词」的折中：从字符开始反复合并最高频对，常见组合成一个 token，罕见组合拆成片段。词表控制在 15 万。
 
-3. **Byte-level 映射解决控制字符问题：256 个字节映射到可打印 unicode（空格→`Ġ`），让任意字节都能进词表。
+3. Byte-level 映射解决控制字符问题：256 个字节映射到可打印 unicode（空格→`Ġ`），让任意字节都能进词表。
 
-4. **Pre-tokenization 先切分再 BPE：空格粘到后面的词（`" world"`），不同片段之间不跨边界合并。
+4. Pre-tokenization 先切分再 BPE：空格粘到后面的词（`" world"`），不同片段之间不跨边界合并。
 
-5. **FNV-1a 哈希 + 拉链法：15 万词表的「字符串→id」查找降到 O(1)，编码才够快。
+5. FNV-1a 哈希 + 拉链法：15 万词表的「字符串→id」查找降到 O(1)，编码才够快。
 
-6. **BOS/EOS/PAD 是序列结构标记：Qwen 里 BOS=EOS=`<|endoftext|>` (id=151643)，生成遇 EOS 停。
+6. BOS/EOS/PAD 是序列结构标记：Qwen 里 BOS=EOS=`<|endoftext|>` (id=151643)，生成遇 EOS 停。
 
-7. **tokenizer.bin 是 tokenizer.json 的紧凑版：7 MB → 3 MB，只留编码/解码必需的数据。
+7. tokenizer.bin 是 tokenizer.json 的紧凑版：7 MB → 3 MB，只留编码/解码必需的数据。
 
-8. **同一个 token id 在两个文件里存不同东西：这是个常见混淆点，值得讲清楚。
+8. 同一个 token id 在两个文件里存不同东西：这是个常见混淆点，值得讲清楚。
 
-以 "Hello" 的 id=9707 为例——**两个文件都有 9707，但存的内容完全不同：
+以 "Hello" 的 id=9707 为例——两个文件都有 9707，但存的内容完全不同：
 
 ```
 ┌─────────────────────────────────────────────────────────┐

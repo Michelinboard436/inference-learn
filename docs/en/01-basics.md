@@ -27,9 +27,9 @@ What it will **not** teach you (out of scope): training (backpropagation / gradi
 
 Every concept comes with three things:
 
-- Plain English**: one sentence saying what it is
-- Why**: what problem it solves
-- Where**: which file and which line of the source code it corresponds to
+- Plain English: one sentence saying what it is
+- Why: what problem it solves
+- Where: which file and which line of the source code it corresponds to
 
 ---
 
@@ -215,11 +215,11 @@ The table above listed which parameters each layer has, but not what problem eac
 
 Each layer has two RMSNorms, each with 896 scaling coefficients.
 
-- What problem it solves**: prevents a vector's values from exploding after 24 layers of matrix multiplication (without normalization, by layer 22 the values balloon to 228 billion and the model collapses)
-- What these 1792 parameters do**:
+- What problem it solves: prevents a vector's values from exploding after 24 layers of matrix multiplication (without normalization, by layer 22 the values balloon to 228 billion and the model collapses)
+- What these 1792 parameters do:
   - The first set of 896 (before attention): at the start of each layer, it "pulls" the vector back to a standard size to prevent explosion, then uses these 896 coefficients to fine-tune each dimension (amplify the important dimensions, shrink the unimportant ones)
   - The second set of 896 (before MLP): does the same thing again before the MLP, with a separate set of coefficients
-- Why two sets**: attention and MLP need different numerical configurations, so each gets its own set of independently trained coefficients
+- Why two sets: attention and MLP need different numerical configurations, so each gets its own set of independently trained coefficients
 
 > 📍 **Where**:
 > - **Model data**: `rms_att_weight` ← safetensors' `input_layernorm.weight`; `rms_ffn_weight` ← `post_attention_layernorm.weight`
@@ -229,12 +229,12 @@ Each layer has two RMSNorms, each with 896 scaling coefficients.
 
 These project the same input vector into three different roles for use in the attention computation.
 
-- What problem it solves**: lets each word automatically decide, based on content, "which other words it should attend to"
-- What each of the three matrices does**:
+- What problem it solves: lets each word automatically decide, based on content, "which other words it should attend to"
+- What each of the three matrices does:
   - Q projection (896×896): computes "what kind of words I'm looking for" (Query), output is 896-dim (14 heads)
   - K projection (128×896): computes "what label I am" (Key), output is only 128-dim — because of **GQA**, the 14 Q heads share 2 KV heads, so K/V are 7× smaller than Q
   - V projection (128×896): computes "what content I carry" (Value), also 128-dim
-- Why K/V are smaller than Q**: to save memory. The KV Cache has to store the K/V of all historical tokens; being 7× smaller means the cache memory is also 7× smaller
+- Why K/V are smaller than Q: to save memory. The KV Cache has to store the K/V of all historical tokens; being 7× smaller means the cache memory is also 7× smaller
 
 > 📍 **Where**:
 > - **Model data**: `wq/wk/wv` ← safetensors' `self_attn.q_proj/k_proj/v_proj.weight`
@@ -244,9 +244,9 @@ These project the same input vector into three different roles for use in the at
 
 An extra shift vector added after the projection matrix multiplication (`Q = x @ Wq + bq`).
 
-- What problem it solves**: matrix multiplication can only "rotate + scale"; adding bias adds a "translation" capability, making the projection more flexible
-- Why marked Qwen-only**: every projection in the Llama family has no bias; Qwen adds bias on Q/K/V (but not on the O projection) — this is a key difference between the two architectures
-- Why the dimensions differ**: the bias dimension = the output dimension. Q outputs 896-dim so its bias is 896; K/V output 128-dim so their bias is 128
+- What problem it solves: matrix multiplication can only "rotate + scale"; adding bias adds a "translation" capability, making the projection more flexible
+- Why marked Qwen-only: every projection in the Llama family has no bias; Qwen adds bias on Q/K/V (but not on the O projection) — this is a key difference between the two architectures
+- Why the dimensions differ: the bias dimension = the output dimension. Q outputs 896-dim so its bias is 896; K/V output 128-dim so their bias is 128
 
 > 📍 **Where**:
 > - **Model data**: `bq/bk/bv` ← safetensors' `self_attn.q_proj/k_proj/v_proj.bias`
@@ -257,8 +257,8 @@ An extra shift vector added after the projection matrix multiplication (`Q = x @
 
 Merges the results of the 14 attention heads back into a single vector.
 
-- What problem it solves**: after attention finishes, each of the 14 heads outputs 64-dim; concatenated that's 896-dim, but it's a "chaotic splice of 14 heads" — Wo is needed to re-integrate them
-- Why no bias**: a Qwen design choice; the O projection doesn't need translation
+- What problem it solves: after attention finishes, each of the 14 heads outputs 64-dim; concatenated that's 896-dim, but it's a "chaotic splice of 14 heads" — Wo is needed to re-integrate them
+- Why no bias: a Qwen design choice; the O projection doesn't need translation
 
 > 📍 **Where**:
 > - **Model data**: `wo` ← safetensors' `self_attn.o_proj.weight` (note: no `o_proj.bias`)
@@ -268,13 +268,13 @@ Merges the results of the 14 attention heads back into a single vector.
 
 The feed-forward network in each layer — three matrices that perform "expand → gate → compress."
 
-- What problem it solves**: attention handles "exchanging information between words"; MLP handles "each word independently processing information" — and that needs a bigger "thinking space"
-- What each of the three matrices does**:
+- What problem it solves: attention handles "exchanging information between words"; MLP handles "each word independently processing information" — and that needs a bigger "thinking space"
+- What each of the three matrices does:
   - Gate w_gate (4864×896): expands to 4864-dim, computes "which channels should be activated" (the gating signal)
   - Up-projection w_up (4864×896): expands to 4864-dim, computes "candidate values"
   - The two are multiplied: `silu(gate) × up` — the gate decides how much of the candidate value gets through (SwiGLU activation)
   - Down-projection w_down (896×4864): compresses back to 896-dim
-- Why it eats so many parameters**: expanding to 4864-dim (5.4× of 896), each matrix is 4.35 million params, and the three add up to 13.07 million. If you want to compress the model, MLP is the primary target
+- Why it eats so many parameters: expanding to 4864-dim (5.4× of 896), each matrix is 4.35 million params, and the three add up to 13.07 million. If you want to compress the model, MLP is the primary target
 
 > 📍 **Where**:
 > - **Model data**: `w_gate/w_up/w_down` ← safetensors' `mlp.gate_proj/up_proj/down_proj.weight`

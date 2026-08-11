@@ -89,7 +89,7 @@ typedef struct JsonValue {
 ```c
 typedef struct {
     int vocab_size;       // vocabulary size
-    char **vocab;         // vocab[i] = the string of token i
+    char vocab;         // vocab[i] = the string of token i
     int *vocab_len;       // byte length of vocab[i]
     int n_merges;         // number of BPE merge rules
     int *merges;          // merges[2i]=a, merges[2i+1]=b

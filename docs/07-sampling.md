@@ -120,7 +120,7 @@ if (pos == n_prompt) {
 
 #### 放进 cache 的到底是什么——不是 token，是 K 和 V 向量
 
-常见误解：「prefill 把 token（符号/编号）放进 cache」。**不是**。token 进了网络后会变成 896 维向量，再经过投影变成 K 和 V，**放进去的是 K 和 V 这两个向量：
+常见误解：「prefill 把 token（符号/编号）放进 cache」。不是。token 进了网络后会变成 896 维向量，再经过投影变成 K 和 V，放进去的是 K 和 V 这两个向量：
 
 ```
 token "你" (id=56568, 只是个编号)
@@ -221,7 +221,7 @@ cache 里全是向量（128 维的浮点数数组），不是 token id。这就�
 
 ## prefill 和 decode 其实干的是同一件事
 
-仔细看会发现：prefill 的每一步和 decode 的每一步，做的事**一模一样：
+仔细看会发现：prefill 的每一步和 decode 的每一步，做的事一模一样：
 
 ```
 prefill 的每一步:                    decode 的每一步:
@@ -234,7 +234,7 @@ prefill 的每一步:                    decode 的每一步:
   ⑦ 算 logits                          ⑦ 算 logits
 ```
 
-代码里两者用的是**同一个 `forward()` 函数：
+代码里两者用的是同一个 `forward()` 函数：
 
 ```c
 for (int pos = 0; pos < total_len; pos++) {
@@ -249,7 +249,7 @@ for (int pos = 0; pos < total_len; pos++) {
 }
 ```
 
-`forward()` 自己根本不知道这是 prefill 还是 decode。**唯一的区别在 forward 之后——下一个 token 从哪来：
+`forward()` 自己根本不知道这是 prefill 还是 decode。唯一的区别在 forward 之后——下一个 token 从哪来：
 
 ```
        forward() 函数 (net.c, 每次都一样)
@@ -268,7 +268,7 @@ for (int pos = 0; pos < total_len; pos++) {
   用 prompt 下一格  用采样结果
 ```
 
-**为什么要区分：因为 prompt 是用户给的，不该让模型改写。如果 prefill 也采样，模型可能把"你好"篡改成"你吗"。所以 prefill 强制用 prompt 的下一格，**不信任模型输出**；到了 prompt 最后一个 token 才开始信任模型、采样生成。
+为什么要区分：因为 prompt 是用户给的，不该让模型改写。如果 prefill 也采样，模型可能把"你好"篡改成"你吗"。所以 prefill 强制用 prompt 的下一格，不信任模型输出；到了 prompt 最后一个 token 才开始信任模型、采样生成。
 
 > 一句话：**prefill 和 decode 是同一个 forward 的两种使用方式**——forward 内部完全一样，区别只在「logits 算完后，下一个 token 从哪来」。
 
@@ -278,7 +278,7 @@ for (int pos = 0; pos < total_len; pos++) {
 
 工业引擎（vLLM/SGLang）常说「prefill 是计算密集型，decode 是内存密集型」。但前面刚说两者 forward 一样，为什么瓶颈不同？
 
-**关键前提：工业引擎不是一个个 token 串行算的，prefill 和 decode 的处理方式不同：
+关键前提：工业引擎不是一个个 token 串行算的，prefill 和 decode 的处理方式不同：
 
 ```
 prefill (能并行): prompt 的 N 个 token 打包成 [N, 896] 矩阵, 一次 matmul 全算
@@ -347,9 +347,9 @@ decode = 零售:
 | **优化** | Tensor Core、Flash Attention | 量化、continuous batching |
 | **效果** | 算力利用率↑ | 带宽利用率↑ |
 
-**为什么 vLLM 死磕 continuous batching：decode 单个 token 读 15GB 只算 0.49G——太亏。把 100 个用户的 decode 拼一起（batch），读一遍 15GB 算 100 个 token → 读取量摊薄 100 倍 → 带宽利用率大幅提高。
+为什么 vLLM 死磕 continuous batching：decode 单个 token 读 15GB 只算 0.49G——太亏。把 100 个用户的 decode 拼一起（batch），读一遍 15GB 算 100 个 token → 读取量摊薄 100 倍 → 带宽利用率大幅提高。
 
-> **注意：以上分析针对工业引擎的并行/批处理方式。本项目的 prefill 和 decode 都是串行一个个算（`forward` 每次只处理 1 个 token），所以两者瓶颈差别不大。理解了工业引擎的区分，才能明白 vLLM 的优化都在对症下药。
+> 注意：以上分析针对工业引擎的并行/批处理方式。本项目的 prefill 和 decode 都是串行一个个算（`forward` 每次只处理 1 个 token），所以两者瓶颈差别不大。理解了工业引擎的区分，才能明白 vLLM 的优化都在对症下药。
 
 ---
 
@@ -389,13 +389,13 @@ if (temperature == 0.0f) {
 }
 ```
 
-**特点：
+特点：
 
 - 完全确定——同一个 prompt + 同一个模型，永远生成同样的输出
 - 不需要随机数
 - 适合**数值验证**（和 PyTorch 对答案时用）
 
-**缺点：容易生成重复、呆板的文本（总选最稳妥的词）。
+缺点：容易生成重复、呆板的文本（总选最稳妥的词）。
 
 ### 策略 2：Temperature（温度缩放）
 
@@ -417,7 +417,7 @@ for (int i = 0; i < vocab_size; i++) {
 | `T > 1`（如 1.5） | 更随机（激进） | 更平 | 创意写作、brainstorm |
 | `T = 0` | 完全确定 | 退化为 argmax | 数值验证 |
 
-**直观图示：
+直观图示：
 
 ```
 原始 logits → softmax (T=1):
@@ -439,7 +439,7 @@ T=2.0 (更平, 分散):
   词D: 0.10 ███
 ```
 
-**为什么减去 maxl：`expf` 容易数值溢出。先找最大值减掉，最大那个变成 `exp(0)=1`，其余都小于 1，永远不会溢出（这叫 **numerically stable softmax**）。
+为什么减去 maxl：`expf` 容易数值溢出。先找最大值减掉，最大那个变成 `exp(0)=1`，其余都小于 1，永远不会溢出（这叫 numerically stable softmax）。
 
 ### 策略 3：Top-k 截断
 
@@ -462,7 +462,7 @@ if (top_k > 0 && top_k < vocab_size) {
 }
 ```
 
-**目的：只在概率最大的 k 个 token 里采样，其余全部清零——截断长尾，避免选到概率极低的乱码。
+目的：只在概率最大的 k 个 token 里采样，其余全部清零——截断长尾，避免选到概率极低的乱码。
 
 ```
 softmax 后 151936 个 token 的概率分布:
@@ -473,7 +473,7 @@ softmax 后 151936 个 token 的概率分布:
 top_k=40: 只在这 40 个里挑, 长尾直接清零
 ```
 
-工业引擎还有 **top-p（nucleus sampling）：动态选概率累计达到 p 的最小集合（如 p=0.9）。本项目没实现，但思路一样——截掉小概率尾部。
+工业引擎还有 top-p（nucleus sampling）：动态选概率累计达到 p 的最小集合（如 p=0.9）。本项目没实现，但思路一样——截掉小概率尾部。
 
 ### 策略 4：轮盘赌采样（Roulette Wheel）
 
@@ -502,7 +502,7 @@ probs = [0.5, 0.3, 0.15, 0.05]
    ↑ r=0.62 落在词 B 区间 → 选词 B
 ```
 
-**为什么 `r * sum` 而不是 `r`：top-k 截断后 sum 已经不是 1.0（被清零的部分不算）。乘以 sum 把随机数缩放到 `[0, sum)`，再累积比较，保证落到正确区间。
+为什么 `r * sum` 而不是 `r`：top-k 截断后 sum 已经不是 1.0（被清零的部分不算）。乘以 sum 把随机数缩放到 `[0, sum)`，再累积比较，保证落到正确区间。
 
 ### 四种策略的关系
 
@@ -556,7 +556,7 @@ static float rng_uniform(RNG *r) {
 }
 ```
 
-**算法核心：用 4 个 32 位状态字（共 128 位），每步做**异或（xor）+ 移位（shift）**产生下一个数。故名 xorshift。
+算法核心：用 4 个 32 位状态字（共 128 位），每步做异或（xor）+ 移位（shift）产生下一个数。故名 xorshift。
 
 ```
 状态: [x, y, z, w]  (128 位)
@@ -568,7 +568,7 @@ static float rng_uniform(RNG *r) {
        新的 w = 输出的 32 位随机数
 ```
 
-**关键术语：
+关键术语：
 
 | 术语 | 全称 | 含义 |
 |------|------|------|
@@ -643,7 +643,7 @@ for (int i = 4; i < argc; i++) {
 
 ### 调参速查
 
-**想稳定输出做对比：
+想稳定输出做对比：
 
 ```bash
 ./run model.safetensors tokenizer.bin "你好" -t 0
@@ -651,7 +651,7 @@ for (int i = 4; i < argc; i++) {
 
 `-t 0` 永远选最高分，输出完全确定。
 
-**想生成有变化的创意文本：
+想生成有变化的创意文本：
 
 ```bash
 ./run model.safetensors tokenizer.bin "从前有座山" -t 0.8 -k 40 -s 42
@@ -659,7 +659,7 @@ for (int i = 4; i < argc; i++) {
 
 `-t 0.8` 略保守，`-k 40` 截断长尾，`-s 42` 固定种子（出问题能复现）。
 
-**想每次结果都不一样：换不同的 `-s` 值即可。
+想每次结果都不一样：换不同的 `-s` 值即可。
 
 ### 其他子命令
 

@@ -381,7 +381,7 @@ int tokenizer_encode(Tokenizer *t, const char *text, int bos_id,
 // tokenizer.h
 typedef struct {
     int   vocab_size;       // vocabulary size (151936)
-    char **vocab;           // vocab[i] = the string of token i (after byte-level encoding)
+    char vocab;           // vocab[i] = the string of token i (after byte-level encoding)
     int  *vocab_len;        // byte length of vocab[i]
     int   n_merges;         // number of BPE merge rules
     int  *merges;           // merges[2i]=a, merges[2i+1]=b
@@ -394,7 +394,7 @@ typedef struct {
     /* special tokens */
     int   n_special;
     int  *special_ids;
-    char **special_strs;
+    char special_strs;
     int  *special_lens;
 
     /* byte→unicode mapping (GPT-2 byte-level) */
