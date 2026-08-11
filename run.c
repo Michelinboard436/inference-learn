@@ -103,6 +103,10 @@ static int sample(float *logits, int vocab_size,
 
     /* 缩放 + softmax (在临时数组上操作, 不改原始 logits) */
     float *probs = malloc(vocab_size * sizeof(float));
+    if (!probs) {
+        fprintf(stderr, "sample: malloc 失败 (vocab_size=%d)\n", vocab_size);
+        return 0;
+    }
     float maxl = logits[0];
     for (int i = 1; i < vocab_size; i++) if (logits[i] > maxl) maxl = logits[i];
     float inv_t = 1.0f / temperature;
@@ -137,6 +141,7 @@ static int sample(float *logits, int vocab_size,
     /* top_k 截断 */
     if (top_k > 0 && top_k < vocab_size) {
         char *keep = calloc(vocab_size, 1);
+        if (!keep) { free(probs); return 0; }
         for (int s = 0; s < top_k; s++) {
             int best = -1; float bestv = -1e30f;
             for (int i = 0; i < vocab_size; i++) {
