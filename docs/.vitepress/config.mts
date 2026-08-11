@@ -113,6 +113,7 @@ const enThemeConfig = {
 export default defineConfig({
   ...baseConfig,
   locales: {
+    root: { label: 'root', lang: 'en' },
     'cn': { label: '简体中文', lang: 'zh-CN', themeConfig: zhThemeConfig },
     'en': { label: 'English', lang: 'en-US', themeConfig: enThemeConfig }
   },
