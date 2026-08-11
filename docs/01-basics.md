@@ -45,7 +45,7 @@ next_token_id = forward(weights, tokens_so_far)
 
 ## Transformer 的一句话原理
 
-Transformer 是一种神经网络，核心机制是**注意力：让每个词「看」其他词，决定关注谁、忽略谁。
+Transformer 是一种神经网络，核心机制是注意力（Attention）：让每个词「看」其他词，决定关注谁、忽略谁。
 
 ```
 "猫 咬 人" → 每个词看其他词 → 理解"谁咬谁" → 预测下一个词
