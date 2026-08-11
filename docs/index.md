@@ -5,9 +5,6 @@ hero:
   name: "inference-learn"
   text: "从零理解 LLM 推理引擎"
   tagline: 用 ~2700 行纯 C 加载 Qwen2.5-0.5B，手写每一个零件。不依赖 PyTorch，只靠 libc。
-  image:
-    src: /social-preview.png
-    alt: inference-learn
   actions:
     - theme: brand
       text: 📖 开始阅读
