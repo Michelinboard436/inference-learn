@@ -25,6 +25,7 @@
 #include "tokenizer.h"
 #include "trace.h"
 #include "report.h"
+#include "server.h"
 
 /* ============================================================
  * 辅助函数
@@ -489,6 +490,29 @@ static int cmd_generate(int argc, char **argv) {
 }
 
 /* ============================================================
+ * 子命令: serve — 启动 HTTP 服务器 (OpenAI 兼容 API)
+ *
+ *   ./run serve model.safetensors tokenizer.bin [--port 8000]
+ *
+ * 模型加载一次后常驻内存, 通过 HTTP 接收请求。
+ * 端点: POST /v1/chat/completions, GET /v1/models
+ * ============================================================ */
+static int cmd_serve(int argc, char **argv) {
+    if (argc < 4) {
+        fprintf(stderr, "serve 用法: %s serve <model.safetensors> <tokenizer.bin> [--port 8000]\n", argv[0]);
+        return 1;
+    }
+    int port = 8000;
+    for (int i = 4; i < argc; i++) {
+        if (strcmp(argv[i], "--port") == 0 && i+1 < argc) {
+            port = atoi(argv[++i]);
+        }
+    }
+    run_server(argv[2], argv[3], port, 0.0f, 40);
+    return 0;
+}
+
+/* ============================================================
  * main — 参数解析 + 子命令分发
  *
  * 只有这一个入口, 根据 argv[1] 分发到对应子命令函数。
@@ -501,9 +525,10 @@ int main(int argc, char **argv) {
             "  %s info <model.safetensors>\n"
             "  %s encode <tokenizer.bin> \"<text>\"\n"
             "  %s fwd <model.safetensors> <token_id> [pos]\n"
+            "  %s serve <model.safetensors> <tokenizer.bin> [--port 8000]\n"
             "  %s <model.safetensors> <tokenizer.bin> \"<prompt>\" "
             "[-v|-vv] [--report] [-t temp] [-k topk] [-s seed]\n",
-            argv[0], argv[0], argv[0], argv[0]);
+            argv[0], argv[0], argv[0], argv[0], argv[0]);
         return 1;
     }
 
@@ -525,5 +550,6 @@ int main(int argc, char **argv) {
     if (strcmp(argv[1], "fwd") == 0)     return cmd_fwd(argc, argv);
     if (strcmp(argv[1], "info") == 0)    return cmd_info(argc, argv);
     if (strcmp(argv[1], "encode") == 0)  return cmd_encode(argc, argv);
+    if (strcmp(argv[1], "serve") == 0)   return cmd_serve(argc, argv);
     return cmd_generate(argc, argv);  /* 默认: 生成模式 */
 }
