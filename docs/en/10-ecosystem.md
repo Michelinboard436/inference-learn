@@ -741,7 +741,7 @@ vLLM's `requires_dist` on PyPI (the real dependency list), grouped by function:
 
 | Dependency | Purpose | Your engine's counterpart |
 |------|------|---------------|
-| `fastapi[standard]` | HTTP API framework | ❌ (you use CLI) |
+| `fastapi[standard]` | HTTP API framework | ❌ (we wrote our own in C) |
 | `starlette` | ASGI framework | - |
 | `openai>=2.0.0` | OpenAI-compatible client | - |
 | `prometheus_client` | Metrics monitoring | - |
@@ -840,8 +840,8 @@ optimization    Quantization (int4/int8) ❌          ✅ many    ✅ many
                 Tensor parallel (multi-card) ❌      ✅          ✅
                 Speculative Decoding   ❌            ✅          ✅
 
-Serving/API     HTTP API               ❌            ✅ FastAPI  ✅ FastAPI
-                OpenAI-compatible      ❌            ✅          ✅
+Serving/API     HTTP API               ✅ pure C    ✅ FastAPI  ✅ FastAPI
+                OpenAI-compatible      ✅ /v1/      ✅          ✅
                 Streaming output (SSE) ❌            ✅          ✅
                 Multimodal (img/audio/video) ❌      ✅          ✅
 

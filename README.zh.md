@@ -55,12 +55,23 @@ make                     # 编译
 ./run model.safetensors tokenizer.bin "Python is"
 ```
 
+也可以启动 HTTP 服务器，通过 API 调用（OpenAI 兼容）：
+
+```bash
+./run serve model.safetensors tokenizer.bin --port 8000
+# 另一个终端:
+curl http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"1+1="}]}'
+```
+
 <details>
 <summary><b>📋 所有命令</b></summary>
 
 | 命令 | 作用 |
 |------|------|
 | `./run model.safetensors tokenizer.bin "提示词"` | 生成文本 |
+| `./run serve model.safetensors tokenizer.bin --port 8000` | 启动 HTTP 服务器（OpenAI 兼容 API） |
 | `./run model.safetensors tokenizer.bin "..." -v` | debug 日志：每层摘要 |
 | `./run model.safetensors tokenizer.bin "..." -vv` | trace 日志：所有中间张量 |
 | `./run model.safetensors tokenizer.bin "..." --report` | 生成 HTML 可视化报告 |

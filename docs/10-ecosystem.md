@@ -738,7 +738,7 @@ vLLM 在 PyPI 上的 `requires_dist`（真实的依赖列表），按功能分�
 
 | 依赖 | 作用 | 你引擎的对应物 |
 |------|------|---------------|
-| `fastapi[standard]` | HTTP API 框架 | ❌（你用 CLI） |
+| `fastapi[standard]` | HTTP API 框架 | ❌（我们自己用 C 写了 HTTP 服务器） |
 | `starlette` | ASGI 框架 | - |
 | `openai>=2.0.0` | OpenAI 兼容客户端 | - |
 | `prometheus_client` | 指标监控 | - |
@@ -837,8 +837,8 @@ libc (malloc, printf, expf, mmap, open)
                张量并行 (多卡)        ❌          ✅          ✅
                Speculative Decoding  ❌          ✅          ✅
 
-服务/API       HTTP API              ❌          ✅ FastAPI   ✅ FastAPI
-               OpenAI 兼容           ❌          ✅          ✅
+服务/API       HTTP API              ✅ 纯C       ✅ FastAPI   ✅ FastAPI
+               OpenAI 兼容           ✅ /v1/      ✅          ✅
                流式输出 (SSE)        ❌          ✅          ✅
                多模态 (图/音/视频)    ❌          ✅          ✅
 

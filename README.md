@@ -61,6 +61,7 @@ make                   # Build
 | Command | What it does |
 |---------|-------------|
 | `./run model.safetensors tokenizer.bin "prompt"` | Generate text |
+| `./run serve model.safetensors tokenizer.bin --port 8000` | Start HTTP server (OpenAI-compatible API) |
 | `./run model.safetensors tokenizer.bin "..." -v` | Debug log: per-layer summary |
 | `./run model.safetensors tokenizer.bin "..." -vv` | Trace log: all intermediate tensors |
 | `./run model.safetensors tokenizer.bin "..." --report` | HTML visualization report |
